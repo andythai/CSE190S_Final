@@ -9,6 +9,12 @@
 *.userosscache
 *.sln.docstates
 
+# Ronald's Specified files
+Minimal/assets/models
+Minimal/assets/skybox
+Minimal/assets/sounds
+Minimal/assets/*.rar
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
