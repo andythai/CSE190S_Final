@@ -61,6 +61,12 @@ using glm::quat;
 
 #include <GL/glew.h>
 
+/* Define our file inclusions here */
+#include "Model.h"
+
+/* Define global variables here */
+Model * test_swd = NULL;
+
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
 	switch (status) {
@@ -598,6 +604,8 @@ protected:
 		ovr_RecenterTrackingOrigin(_session);
 
 		// TODO: INITIALIZE OUR VARIABLES HERE
+		// Initialize models here
+		test_swd = new Model("assets/models/sword_obj.obj");
 	}
 
 	void shutdownGl() override {

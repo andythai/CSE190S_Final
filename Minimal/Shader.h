@@ -1,8 +1,7 @@
 #pragma once
 #ifndef SHADER_H
 #define SHADER_H
-//
-#include <glad/glad.h>
+//#include <glad/glad.h>
 
 // TODO: compare these inclusions with main.cpp's inclusions
 #include <GL/glew.h>

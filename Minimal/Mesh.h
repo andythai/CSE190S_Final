@@ -18,7 +18,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <learnopengl/shader.h>
+//#include <learnopengl/shader.h>
+#include "Shader.h"
 
 #include <string>
 #include <fstream>
