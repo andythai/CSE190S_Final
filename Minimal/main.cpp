@@ -581,13 +581,6 @@ protected:
 	virtual void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) = 0;
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// The remainder of this code is specific to the scene we want to 
-// render.  I use oglplus to render an array of cubes, but your 
-// application would perform whatever rendering you want
-//
-
 /*-------------------RENDER MODELS USING THE EXAMPLE APP -------------------*/
 
 // An example application that renders a simple cube
@@ -605,7 +598,8 @@ protected:
 
 		// TODO: INITIALIZE OUR VARIABLES HERE
 		// Initialize models here
-		test_swd = new Model("assets/models/sword_obj.obj");
+		//test_swd = new Model("assets/models/sword_obj.obj");
+		//test_swd = new Model("assets/models/sphere2.obj");
 	}
 
 	void shutdownGl() override {
