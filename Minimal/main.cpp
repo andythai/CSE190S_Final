@@ -610,6 +610,7 @@ protected:
 
 	void shutdownGl() override {
 		// TODO: DEAL WITH CLEANUP HERE
+		delete test_swd;
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
