@@ -1,31 +1,25 @@
-/*
- *  Mesh class from learnopenGL.com
- *  Utilizes Assimp to load fancier objects than our OBJObject cannot
- */
 #pragma once
 #ifndef MESH_H
 #define MESH_H
 
-/*
-#include <glad/glad.h> // holds all OpenGL type declarations
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-*/
-
-// TODO: compare these inclusions with main.cpp's inclusions
+#define GLFW_INCLUDE_GLEXT
+#ifdef __APPLE__
+#define GLFW_INCLUDE_GLCOREARB
+#else
 #include <GL/glew.h>
+#endif
 #include <GLFW/glfw3.h>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-//#include <learnopengl/shader.h>
-#include "Shader.h"
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <vector>
+
+#include "Shader.h"
+
 using namespace std;
 
 struct Vertex {
@@ -35,10 +29,12 @@ struct Vertex {
 	glm::vec3 Normal;
 	// texCoords
 	glm::vec2 TexCoords;
+	/*
 	// tangent
 	glm::vec3 Tangent;
 	// bitangent
 	glm::vec3 Bitangent;
+	*/
 };
 
 struct Texture {
@@ -57,7 +53,8 @@ public:
 
 	/*  Functions  */
 	// constructor
-	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures) {
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+	{
 		this->vertices = vertices;
 		this->indices = indices;
 		this->textures = textures;
@@ -67,7 +64,9 @@ public:
 	}
 
 	// render the mesh
-	void Draw(Shader shader) {
+	void Draw(Shader shader, glm::mat4 M, glm::mat4 V, glm::mat4 P)
+	{
+		/*
 		// bind appropriate textures
 		unsigned int diffuseNr = 1;
 		unsigned int specularNr = 1;
@@ -93,6 +92,12 @@ public:
 			// and finally bind the texture
 			glBindTexture(GL_TEXTURE_2D, textures[i].id);
 		}
+		*/
+
+		// Set MVP matrices in shader
+		shader.setMat4("model", M);
+		shader.setMat4("view", V);
+		shader.setMat4("projection", P);
 
 		// draw mesh
 		glBindVertexArray(VAO);
@@ -100,7 +105,7 @@ public:
 		glBindVertexArray(0);
 
 		// always good practice to set everything back to defaults once configured.
-		glActiveTexture(GL_TEXTURE0);
+		//glActiveTexture(GL_TEXTURE0);
 	}
 
 private:
@@ -137,12 +142,14 @@ private:
 		// vertex texture coords
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+		/*
 		// vertex tangent
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
 		// vertex bitangent
 		glEnableVertexAttribArray(4);
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+		*/
 
 		glBindVertexArray(0);
 	}

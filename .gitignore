@@ -14,6 +14,10 @@ Minimal/assets/models
 Minimal/assets/skybox
 Minimal/assets/sounds
 Minimal/assets/*.rar
+*.obj
+*.ppm
+*.zip
+*.rar
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

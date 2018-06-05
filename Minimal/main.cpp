@@ -61,11 +61,22 @@ using glm::quat;
 
 #include <GL/glew.h>
 
-/* Define our file inclusions here */
+/** Define our file inclusions here **/
 #include "Model.h"
+#include "Audio.h"
+#include "Skybox.h"
+#include "Shader.h"
 
-/* Define global variables here */
-Model * test_swd = NULL;
+/** Define global variables here **/
+/* 3D Models */
+Model * test_monster = NULL;
+
+/* Shaders */
+Shader * obj_shader = NULL;
+Shader * sky_shader = NULL;
+
+/* Audio */
+Audio * bgm = NULL;
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
@@ -604,7 +615,7 @@ protected:
 
 	void shutdownGl() override {
 		// TODO: DEAL WITH CLEANUP HERE
-		delete test_swd;
+		
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
