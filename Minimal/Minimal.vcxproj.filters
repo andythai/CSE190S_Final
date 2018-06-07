@@ -45,6 +45,12 @@
     <None Include="skybox.frag">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Bounds.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Bounds.vert">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">

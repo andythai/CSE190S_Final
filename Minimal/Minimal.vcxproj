@@ -137,6 +137,8 @@
     <ClCompile Include="Skybox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Bounds.frag" />
+    <None Include="Bounds.vert" />
     <None Include="obj_shader.frag" />
     <None Include="obj_shader.vert" />
     <None Include="packages.config" />

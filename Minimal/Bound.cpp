@@ -17,13 +17,11 @@ Bound::Bound()
 	// Consider the VAO as a container for all your buffers.
 	glBindVertexArray(VAO);
 
-	// Now bind a VBO to it as a GL_ARRAY_BUFFER. The GL_ARRAY_BUFFER is an array containing relevant data to what
-	// you want to draw, such as vertices, normals, colors, etc.
+	// Now bind a VBO to it as a GL_ARRAY_BUFFER. 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// glBufferData populates the most recently bound buffer with data starting at the 3rd argument and ending after
-	// the 2nd argument number of indices. How does OpenGL know how long an index spans? Go to glVertexAttribPointer.
+	// glBufferData populates most recently bound buffer with data starting at the 3rd argument and ending after the 2nd
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// Enable the usage of layout location 0 (check the vertex shader to see what this is)
+	// Enable the usage of layout location 0
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0,// This first parameter x should be the same as the number passed into the line "layout (location = x)" in the vertex shader. In this case, it's 0. Valid values are 0 to GL_MAX_UNIFORM_LOCATIONS.
 		3, // This second line tells us how any components there are per vertex. In this case, it's 3 (we have an x, y, and z component)
@@ -32,8 +30,8 @@ Bound::Bound()
 		3 * sizeof(GLfloat), // Offset between consecutive indices. Since each of our vertices have 3 floats, they should have the size of 3 floats in between
 		(GLvoid*)0); // Offset of the first vertex's component. In our case it's 0 since we don't pad the vertices array with anything.
 
-					 // We've sent the vertex data over to OpenGL, but there's still something missing.
-					 // In what order should it draw those vertices? That's why we'll need a GL_ELEMENT_ARRAY_BUFFER for this.
+	// We've sent the vertex data over to OpenGL, but there's still something missing.
+	// In what order should it draw those vertices? That's why we'll need a GL_ELEMENT_ARRAY_BUFFER for this.
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
