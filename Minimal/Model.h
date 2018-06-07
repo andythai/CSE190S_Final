@@ -44,7 +44,7 @@ public:
 	Model(string const &path, bool gamma);
 
 	// draws the model, and thus all its meshes
-	void Draw(Shader shader, glm::mat4 V, glm::mat4 P);
+	void Draw(Shader shader, glm::mat4 P, glm::mat4 V);
 
 	// Transformation functions
 	void translate(float x, float y, float z);

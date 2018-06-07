@@ -61,6 +61,13 @@ using glm::quat;
 
 #include <GL/glew.h>
 
+/** Define any preprocessing directives here **/
+#define DEATH1 0
+#define MONS_DEATH1 1
+#define MONS_DEATH2 2
+#define GAME_OVR 3
+#define GAME_WIN 4
+
 /** Define our file inclusions here **/
 #include "Model.h"
 #include "Audio.h"
@@ -69,14 +76,18 @@ using glm::quat;
 
 /** Define global variables here **/
 /* 3D Models */
-Model * test_monster = NULL;
+Model * test_monster;
+Skybox * stage1, * stage2;
 
 /* Shaders */
-Shader * obj_shader = NULL;
-Shader * sky_shader = NULL;
+Shader * obj_shader, * sky_shader;
 
 /* Audio */
-Audio * bgm = NULL;
+Audio * bgm, * snd_fx;
+
+/* State indicators */
+unsigned int stage_type = 0;
+
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
@@ -607,24 +618,79 @@ protected:
 		glEnable(GL_DEPTH_TEST);
 		ovr_RecenterTrackingOrigin(_session);
 
-		// TODO: INITIALIZE OUR VARIABLES HERE
+		/** TODO: INITIALIZE OUR VARIABLES HERE **/
 		// Initialize models here
-		//test_swd = new Model("assets/models/sword_obj.obj");
-		//test_swd = new Model("assets/models/sphere2.obj");
+		test_monster = new Model(std::string("assets/models/obj/monster.obj"), false);
+		// Skybox image path locations (pz, px, nx, py, ny, nz)
+		std::vector<char *> stage1Faces = {
+			"assets/skybox/warren/pz.ppm",
+			"assets/skybox/warren/px.ppm",
+			"assets/skybox/warren/nx.ppm",
+			"assets/skybox/warren/py.ppm",
+			"assets/skybox/warren/ny.ppm",
+			"assets/skybox/warren/nz.ppm"
+		};
+		std::vector<char *> stage2Faces = {
+			"assets/skybox/blood/blood_ft.ppm",
+			"assets/skybox/blood/blood_rt.ppm",
+			"assets/skybox/blood/blood_lf.ppm",
+			"assets/skybox/blood/blood_up.ppm",
+			"assets/skybox/blood/blood_dn.ppm",
+			"assets/skybox/blood/blood_bk.ppm"
+		};
+		stage1 = new Skybox(stage1Faces);
+		stage2 = new Skybox(stage2Faces);
+
+		// Initialize audio here
+		std::vector<std::string> bgmFiles;
+		bgmFiles.push_back("assets/sounds/taiko_bgm.wav");
+		std::vector<std::string> soundFiles;
+		soundFiles.push_back("assets/sounds/death1.wav");
+		soundFiles.push_back("assets/sounds/monster_death1.wav");
+		soundFiles.push_back("assets/sounds/monster_death2.wav");
+		soundFiles.push_back("assets/sounds/game_over.wav");
+		soundFiles.push_back("assets/sounds/game_win.wav");
+
+		bgm = new Audio(bgmFiles);
+		//snd_fx = new Audio(soundFiles);
+
+		// Initialize shaders here
+		obj_shader = new Shader("obj_shader.vert", "obj_shader.frag");
+		sky_shader = new Shader("skybox.vert", "skybox.frag");
 	}
 
 	void shutdownGl() override {
-		// TODO: DEAL WITH CLEANUP HERE
-		
+		/** TODO: DEAL WITH CLEANUP HERE **/
+		delete test_monster, stage1, stage2;
+		delete bgm, snd_fx;
+		delete obj_shader, sky_shader;
+	}
+
+	void update() {
+		/** Deal with idle_callbacks here **/
+		// Play stage bgm
+		bgm->play(0);
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
 		// TODO: RENDER MODELS HERE
+		sky_shader->use();
+		switch (stage_type) {
+		case 0:
+			stage1->draw(sky_shader->ID, projection, glm::inverse(headPose));
+			break;
+		case 1:
+			stage2->draw(sky_shader->ID, projection, glm::inverse(headPose));
+		}
+
+		obj_shader->use();
+		test_monster->Draw(*obj_shader, projection, glm::inverse(headPose));
 	}
 };
 
 // Execute our example class
-int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+//int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int main(int argc, char** argv) {
 	int result = -1;
 	try {
 		if (!OVR_SUCCESS(ovr_Initialize(nullptr))) {

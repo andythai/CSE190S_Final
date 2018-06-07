@@ -9,7 +9,7 @@ Model::Model(string const &path, bool gamma = false) : gammaCorrection(gamma) {
 	centerAndResize();
 }
 
-void Model::Draw(Shader shader, glm::mat4 V, glm::mat4 P) {
+void Model::Draw(Shader shader, glm::mat4 P, glm::mat4 V) {
 	for (unsigned int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader, toWorld, V, P);
 }
@@ -233,8 +233,8 @@ void Model::centerAndResize() {
 		size = max_z - min_z;
 	}
 
-	// Bound to a 8 x 8 x 8 cube
-	size = size / 8.0f;
+	// Bound to a 0.2 x 0.2 x 0.2 cube
+	size = size / 0.2f;
 	this->scale_factor = 1.0f / size;
 
 	// Move model
