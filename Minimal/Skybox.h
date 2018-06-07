@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #ifndef _SKYBOX_H_
 #define _SKYBOX_H_
 
@@ -63,9 +62,9 @@ public:
 // This just looks nicer since it's easy to tell what coordinates/indices belong where.
 const GLfloat vertices_sky[8][3] = {
 	// "Front" vertices
-	{ -500.0f, -500.0f,  500.0f },{ 500.0f, -500.0f,  500.0f },{ 500.0f,  500.0f,  500.0f },{ -500.0f,  500.0f, 500.0f },
+	{ -100.0f, -100.0f,  100.0f },{ 100.0f, -100.0f,  100.0f },{ 100.0f,  100.0f,  100.0f },{ -100.0f,  100.0f, 100.0f },
 	// "Back" vertices
-	{ -500.0f, -500.0f, -500.0f },{ 500.0f, -500.0f, -500.0f },{ 500.0f,  500.0f, -500.0f },{ -500.0f,  500.0f, -500.0f }
+	{ -100.0f, -100.0f, -100.0f },{ 100.0f, -100.0f, -100.0f },{ 100.0f,  100.0f, -100.0f },{ -100.0f,  100.0f, -100.0f }
 };
 
 // Note that GL_QUADS is deprecated in modern OpenGL (and removed from OSX systems).

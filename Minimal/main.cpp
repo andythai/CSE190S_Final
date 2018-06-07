@@ -17,7 +17,6 @@ limitations under the License.
 
 ************************************************************************************/
 
-
 #include <iostream>
 #include <memory>
 #include <exception>
@@ -75,20 +74,24 @@ using glm::quat;
 #include "Skybox.h"
 #include "Shader.h"
 
+//// MOVE VARIABLES OVER INTO EXAMPLEAPP CLASS?
 /** Define global variables here **/
 /* 3D Models */
-Model * test_monster;
-Skybox * stage1, * stage2;
+Model * test_monster;		// For testing model rendering. Replace with different obj types
+Skybox * stage1, * stage2;	// Skyboxes represent different stages
+// TODO: MAYBE ADD A TERRAIN?
 
 /* Shaders */
-Shader * obj_shader, * sky_shader;
+Shader * obj_shader, * sky_shader;	// Shaders for objects and skybox
 
 /* Audio */
-Audio * sounds;
+Audio * sounds;		// Holds sounds (bgm/sound fx)
 
 /* State indicators */
 unsigned int stage_type = 1;
-
+bool game_over = false;
+bool button_down = false;
+float timer = 0.0f;
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
