@@ -62,11 +62,12 @@ using glm::quat;
 #include <GL/glew.h>
 
 /** Define any preprocessing directives here **/
-#define DEATH1 0
-#define MONS_DEATH1 1
-#define MONS_DEATH2 2
-#define GAME_OVR 3
-#define GAME_WIN 4
+#define BGM1 0
+#define DEATH1 1
+#define MONS_DEATH1 2
+#define MONS_DEATH2 3
+#define GAME_OVR 4
+#define GAME_WIN 5
 
 /** Define our file inclusions here **/
 #include "Model.h"
@@ -83,10 +84,10 @@ Skybox * stage1, * stage2;
 Shader * obj_shader, * sky_shader;
 
 /* Audio */
-Audio * bgm, * snd_fx;
+Audio * sounds;
 
 /* State indicators */
-unsigned int stage_type = 0;
+unsigned int stage_type = 1;
 
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
@@ -632,8 +633,8 @@ protected:
 		};
 		std::vector<char *> stage2Faces = {
 			"assets/skybox/blood/blood_ft.ppm",
-			"assets/skybox/blood/blood_rt.ppm",
 			"assets/skybox/blood/blood_lf.ppm",
+			"assets/skybox/blood/blood_rt.ppm",
 			"assets/skybox/blood/blood_up.ppm",
 			"assets/skybox/blood/blood_dn.ppm",
 			"assets/skybox/blood/blood_bk.ppm"
@@ -651,8 +652,7 @@ protected:
 		soundFiles.push_back("assets/sounds/game_over.wav");
 		soundFiles.push_back("assets/sounds/game_win.wav");
 
-		bgm = new Audio(bgmFiles);
-		//snd_fx = new Audio(soundFiles);
+		sounds = new Audio(bgmFiles);
 
 		// Initialize shaders here
 		obj_shader = new Shader("obj_shader.vert", "obj_shader.frag");
@@ -662,14 +662,14 @@ protected:
 	void shutdownGl() override {
 		/** TODO: DEAL WITH CLEANUP HERE **/
 		delete test_monster, stage1, stage2;
-		delete bgm, snd_fx;
+		delete sounds;
 		delete obj_shader, sky_shader;
 	}
 
 	void update() {
 		/** Deal with idle_callbacks here **/
 		// Play stage bgm
-		bgm->play(0);
+		sounds->play(0);
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
