@@ -32,17 +32,15 @@
 class Treasure : public Node {
 public:
 	/* Public functions */
-	/* Constructor for player object
-	* fileNames - Contains list of paths of 3D objects to represent the player
-	*			   Index 0 = Head, Index 1 = right hand, Index 2 = sword
-	* playerType - true = Player 1, false = Player 2
-	*/
 	Treasure(Model * pedestal, Model * treasure);
 	~Treasure();
 
 	void update();
+	int getHealth();
+	void checkIfHit();
 
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Use if object if its going into scene graph
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V);					// Use if object is not going into scene graph
 
 
 private:
@@ -51,6 +49,9 @@ private:
 	unsigned int playerType;
 	std::vector<Model *> models;	// Will store pointers to head and hand(s)
 	Bound * attack_box;
+
+	/* Private Functions */
+	void initialize();	// Move Treasure and pedestal together correctly
 };
 
 #endif

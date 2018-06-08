@@ -16,7 +16,7 @@ void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V) {
 
 void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
 	for (unsigned int i = 0; i < meshes.size(); i++)
-		meshes[i].Draw(shader, C, V, P);
+		meshes[i].Draw(shader, C * toWorld, V, P);
 }
 
 /** Helper Functions **/
@@ -238,8 +238,8 @@ void Model::centerAndResize() {
 		size = max_z - min_z;
 	}
 
-	// Bound to a 0.2 x 0.2 x 0.2 cube
-	size = size / 0.2f;
+	// Bound to a 0.5 x 0.5 x 0.5 cube
+	size = size / 0.5f;
 	this->scale_factor = 1.0f / size;
 
 	// Move model

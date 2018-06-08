@@ -73,25 +73,7 @@ using glm::quat;
 #include "Audio.h"
 #include "Skybox.h"
 #include "Shader.h"
-
-//// MOVE VARIABLES OVER INTO EXAMPLEAPP CLASS?
-/** Define global variables here **/
-/* 3D Models */
-Model * test_monster;		// For testing model rendering. Replace with different obj types
-Skybox * stage1, * stage2;	// Skyboxes represent different stages
-// TODO: MAYBE ADD A TERRAIN?
-
-/* Shaders */
-Shader * obj_shader, * sky_shader;	// Shaders for objects and skybox
-
-/* Audio */
-Audio * sounds;		// Holds sounds (bgm/sound fx)
-
-/* State indicators */
-unsigned int stage_type = 1;
-bool game_over = false;
-bool button_down = false;
-float timer = 0.0f;
+#include "Treasure.h"
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
@@ -615,6 +597,26 @@ class ExampleApp : public RiftApp {
 public:
 	ExampleApp() { }
 
+	/** Define global variables here **/
+	/* 3D Models */
+	Model * test_monster;							// For testing model rendering. Replace with different obj types
+	Model * sphere, *sword, *treasure, *pedestal;	// Player models, treasure models
+	Model * wk_bot, *str_bot, *wk_mons, *str_mons;	// Enemy models
+	Skybox * stage1, *stage2;						// Skyboxes represent different stages
+													// TODO: MAYBE ADD A TERRAIN?
+	Treasure * treasure_unit;						// Treasure object taken as one unit
+	/* Shaders */
+	Shader * obj_shader, *sky_shader;	// Shaders for objects and skybox
+
+	/* Audio */
+	Audio * sounds;		// Holds sounds (bgm/sound fx)
+
+	/* State indicators */
+	unsigned int stage_type = 1;
+	bool game_over = false;
+	bool button_down = false;
+	float timer = 0.0f;
+
 protected:
 	void initGl() override {
 		RiftApp::initGl();
@@ -623,8 +625,21 @@ protected:
 		ovr_RecenterTrackingOrigin(_session);
 
 		/** TODO: INITIALIZE OUR VARIABLES HERE **/
-		// Initialize models here
-		test_monster = new Model(std::string("assets/models/obj/monster.obj"), false);
+		/* Initialize models here */
+		cout << "Loading models..." << endl;
+		// Load up each Model obj
+		test_monster = new Model(string("assets/models/obj/monster.obj"), false);
+		sphere = new Model(string("assets/models/obj/sphere2.obj"), false);
+		sword = new Model(string("assets/models/obj/sword_obj.obj"), false);
+		treasure = new Model(string("assets/models/obj/Morgana3D.obj"), false);
+		pedestal = new Model(string("assets/models/obj/001_Pedestal_high_poly.obj"), false);
+		wk_bot = new Model(string("assets/models/obj/Anim_Idle.obj"), false);
+		str_bot = new Model(string("assets/models/obj/redBot.obj"), false);
+		wk_mons = new Model(string("assets/models/obj/monster.obj"), false);
+		str_mons = new Model(string("assets/models/obj/cacodemon.obj"), false);
+		// Set up stage here
+		treasure_unit = new Treasure(pedestal, treasure);
+
 		// Skybox image path locations (pz, px, nx, py, ny, nz)
 		std::vector<char *> stage1Faces = {
 			"assets/skybox/warren/pz.ppm",
@@ -644,8 +659,10 @@ protected:
 		};
 		stage1 = new Skybox(stage1Faces);
 		stage2 = new Skybox(stage2Faces);
+		cout << "Finished loading models!" << endl;
 
 		// Initialize audio here
+		cout << "Loading audio..." << endl;
 		std::vector<std::string> bgmFiles;
 		bgmFiles.push_back("assets/sounds/taiko_bgm.wav");
 		std::vector<std::string> soundFiles;
@@ -654,17 +671,29 @@ protected:
 		soundFiles.push_back("assets/sounds/monster_death2.wav");
 		soundFiles.push_back("assets/sounds/game_over.wav");
 		soundFiles.push_back("assets/sounds/game_win.wav");
-
 		sounds = new Audio(bgmFiles);
+		cout << "Finished loading audio!" << endl;
 
 		// Initialize shaders here
 		obj_shader = new Shader("obj_shader.vert", "obj_shader.frag");
 		sky_shader = new Shader("skybox.vert", "skybox.frag");
+
+		// Pick user stage here
+		do {
+			cout << "PICK A STAGE: 1 OR 2..." << endl;
+			cin >> stage_type;
+			if (stage_type != 1 && stage_type != 2) {
+				cout << "Invalid stage! Try again!" << endl;
+			}
+		} while (stage_type != 1 && stage_type != 2);
+		cout << "GAME START!" << endl;
 	}
 
 	void shutdownGl() override {
 		/** TODO: DEAL WITH CLEANUP HERE **/
-		delete test_monster, stage1, stage2;
+		delete test_monster, sphere, sword, treasure, pedestal;
+		delete wk_bot, str_bot, wk_mons, str_mons;
+		delete stage1, stage2;
 		delete sounds;
 		delete obj_shader, sky_shader;
 	}
@@ -679,15 +708,16 @@ protected:
 		// TODO: RENDER MODELS HERE
 		sky_shader->use();
 		switch (stage_type) {
-		case 0:
+		case 1:
 			stage1->draw(sky_shader->ID, projection, glm::inverse(headPose));
 			break;
-		case 1:
+		case 2:
 			stage2->draw(sky_shader->ID, projection, glm::inverse(headPose));
 		}
 
 		obj_shader->use();
-		test_monster->draw(*obj_shader, projection, glm::inverse(headPose));
+		//test_monster->draw(*obj_shader, projection, glm::inverse(headPose));
+		treasure_unit->draw(*obj_shader, projection, glm::inverse(headPose));
 	}
 };
 
