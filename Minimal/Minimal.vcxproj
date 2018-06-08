@@ -138,6 +138,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Treasure.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Bounds.frag" />
@@ -160,6 +161,7 @@
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Treasure.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,10 +1,11 @@
-/* By Ronald Allan Baldonado
- * Player class derived from Node.h
- * Compatible with Scene Graph
- */
 #pragma once
-#ifndef _PLAYER_H_
-#define _PLAYER_H_
+/* By Ronald Allan Baldonado
+* Player class derived from Node.h
+* Compatible with Scene Graph
+*/
+#pragma once
+#ifndef _TREASURE_H_
+#define _TREASURE_H_
 
 #define GLFW_INCLUDE_GLEXT
 #ifdef __APPLE__
@@ -28,18 +29,17 @@
 #include "Model.h"
 #include "Bound.h"
 
-class Player : public Node {
+class Treasure : public Node {
 public:
 	/* Public functions */
 	/* Constructor for player object
-	 * Model *'s - Points to 3D objects to keep track of
-	 * playerType - true = Player 1, false = Player 2
-	 */
-	Player(Model * head, Model * hand, Model * sword, bool playerType);
-	~Player();
+	* fileNames - Contains list of paths of 3D objects to represent the player
+	*			   Index 0 = Head, Index 1 = right hand, Index 2 = sword
+	* playerType - true = Player 1, false = Player 2
+	*/
+	Treasure(Model * pedestal, Model * treasure);
+	~Treasure();
 
-	int getScore();
-	// TODO: Add function to handle sword hits here
 	void update();
 
 	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
@@ -47,7 +47,7 @@ public:
 
 private:
 	/* Private Data */
-	unsigned int score;
+	int health;
 	unsigned int playerType;
 	std::vector<Model *> models;	// Will store pointers to head and hand(s)
 	Bound * attack_box;

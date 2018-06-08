@@ -24,16 +24,17 @@
 #include "Model.h"
 #include "Bound.h"
 
-class Enemy {
+class Enemy : public Node {
 public:
 	/* Public functions */
 	Enemy();
 	~Enemy();
 
+	void spawnMonsters();
 	void wasHit();
 
-	void Draw(Shader shader, glm::mat4 P, glm::mat4 V);
-
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
+	void update();
 
 private:
 	/* Private Data */

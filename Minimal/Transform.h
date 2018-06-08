@@ -25,11 +25,11 @@ public:
 	/* Functions */
 	Transform();			// Initialize transformation node with identity matrix
 	Transform(glm::mat4);	// Initialize transformation with passed in matrix
-	~Transform();
+	~Transform();			// Destructors
 
 	void addChild(Node*);												// Add child to list
 	void removeChild(Node*);											// Remove a child from the list
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);		// Pass transformation down and draw leaf node
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Pass transformation down and draw leaf node
 
 	glm::mat4 get_transform();				// Grab current transformations (return M)
 	void change_transform(glm::mat4);		// Change M directly

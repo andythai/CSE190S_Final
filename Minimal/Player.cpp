@@ -10,11 +10,11 @@ using glm::mat4;
 using glm::vec3;
 
 /*------ CONSTRUCTOR/DESTRUCTOR FUNCTIONS --------*/
-Player::Player(std::vector<const char *> fileNames, bool playerType) {
-	// Initialize models for hand names
-	for (const char * name : fileNames) {
-		models.push_back(new Model(std::string(name), false));
-	}
+Player::Player(Model * head, Model * hand, Model * sword, bool playerType) {
+	// Initialize head, hand, and sword representations
+	models.push_back(head);
+	models.push_back(hand);
+	models.push_back(sword);
 
 	// Initialize score and player label
 	score = 0;
@@ -32,11 +32,13 @@ int Player::getScore() {
 	return score;
 }
 
-void Player::Draw(Shader shader, mat4 P, mat4 V) {
+void Player::update() { }
+
+void Player::draw(Shader shader, mat4 P, mat4 V, mat4 C) {
 	// TODO: Send info to shader to discriminate between players
 
 	// Render player
 	for (Model * toRender : models) {
-		toRender->draw(shader, P, V);
+		toRender->draw(shader, P, V, C);
 	}
 }
