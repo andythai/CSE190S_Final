@@ -10,6 +10,7 @@ using glm::mat4;
 using glm::vec3;
 
 /*------ CONSTRUCTOR/DESTRUCTOR FUNCTIONS --------*/
+Player::Player() { }
 Player::Player(Model * head, Model * hand, Model * sword, bool playerType) {
 	// Initialize head, hand, and sword representations
 	models.push_back(head);

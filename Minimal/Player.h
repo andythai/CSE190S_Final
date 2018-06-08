@@ -31,6 +31,7 @@
 class Player : public Node {
 public:
 	/* Public functions */
+	Player();
 	/* Constructor for player object
 	 * Model *'s - Points to 3D objects to keep track of
 	 * playerType - true = Player 1, false = Player 2

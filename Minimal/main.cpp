@@ -74,6 +74,8 @@ using glm::quat;
 #include "Skybox.h"
 #include "Shader.h"
 #include "Treasure.h"
+#include "Player.h"
+#include "Enemy.h"
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
@@ -595,7 +597,7 @@ protected:
 class ExampleApp : public RiftApp {
 
 public:
-	ExampleApp() { }
+	ExampleApp() {}
 
 	/** Define global variables here **/
 	/* 3D Models */
@@ -605,6 +607,8 @@ public:
 	Skybox * stage1, *stage2;						// Skyboxes represent different stages
 													// TODO: MAYBE ADD A TERRAIN?
 	Treasure * treasure_unit;						// Treasure object taken as one unit
+	Player * player_1, * player_2;					// Players
+
 	/* Shaders */
 	Shader * obj_shader, *sky_shader;	// Shaders for objects and skybox
 
@@ -638,7 +642,9 @@ protected:
 		wk_mons = new Model(string("assets/models/obj/monster.obj"), false);
 		str_mons = new Model(string("assets/models/obj/cacodemon.obj"), false);
 		// Set up stage here
-		treasure_unit = new Treasure(pedestal, treasure);
+		treasure_unit = new Treasure(pedestal, treasure);	// Pedestal and treasure treated as one whole unit
+		player_1 = new Player(sphere, sphere, sword, true);
+		player_2 = new Player(sphere, sphere, sword, false);
 
 		// Skybox image path locations (pz, px, nx, py, ny, nz)
 		std::vector<char *> stage1Faces = {
@@ -679,6 +685,7 @@ protected:
 		sky_shader = new Shader("skybox.vert", "skybox.frag");
 
 		// Pick user stage here
+		/*
 		do {
 			cout << "PICK A STAGE: 1 OR 2..." << endl;
 			cin >> stage_type;
@@ -686,6 +693,7 @@ protected:
 				cout << "Invalid stage! Try again!" << endl;
 			}
 		} while (stage_type != 1 && stage_type != 2);
+		*/
 		cout << "GAME START!" << endl;
 	}
 
@@ -693,6 +701,7 @@ protected:
 		/** TODO: DEAL WITH CLEANUP HERE **/
 		delete test_monster, sphere, sword, treasure, pedestal;
 		delete wk_bot, str_bot, wk_mons, str_mons;
+		delete treasure_unit, player_1, player_2;
 		delete stage1, stage2;
 		delete sounds;
 		delete obj_shader, sky_shader;

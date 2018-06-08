@@ -31,7 +31,7 @@ public:
 	~Enemy();
 
 	void spawnMonsters();
-	void wasHit();
+	bool wasHit();
 
 	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 	void update();
