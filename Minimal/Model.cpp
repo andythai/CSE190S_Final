@@ -9,9 +9,14 @@ Model::Model(string const &path, bool gamma = false) : gammaCorrection(gamma) {
 	centerAndResize();
 }
 
-void Model::Draw(Shader shader, glm::mat4 P, glm::mat4 V) {
+void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V) {
 	for (unsigned int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader, toWorld, V, P);
+}
+
+void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
+	for (unsigned int i = 0; i < meshes.size(); i++)
+		meshes[i].Draw(shader, C, V, P);
 }
 
 /** Helper Functions **/
@@ -308,3 +313,5 @@ void Model::rotate(float angle, glm::vec3 axis) {
 	this->toWorld = glm::rotate(glm::mat4(1.0f), angle / 180.0f * glm::pi<float>(), axis) * toWorld;
 	this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(world_X, world_Y, world_Z)) * toWorld;
 }
+
+void Model::update() { }

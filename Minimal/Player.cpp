@@ -37,6 +37,6 @@ void Player::Draw(Shader shader, mat4 P, mat4 V) {
 
 	// Render player
 	for (Model * toRender : models) {
-		toRender->Draw(shader, P, V);
+		toRender->draw(shader, P, V);
 	}
 }

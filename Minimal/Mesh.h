@@ -66,7 +66,6 @@ public:
 	// render the mesh
 	void Draw(Shader shader, glm::mat4 M, glm::mat4 V, glm::mat4 P)
 	{
-		/*
 		// bind appropriate textures
 		unsigned int diffuseNr = 1;
 		unsigned int specularNr = 1;
@@ -92,7 +91,6 @@ public:
 			// and finally bind the texture
 			glBindTexture(GL_TEXTURE_2D, textures[i].id);
 		}
-		*/
 
 		// Set MVP matrices in shader
 		shader.setMat4("model", M);

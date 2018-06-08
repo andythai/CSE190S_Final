@@ -17,6 +17,7 @@
 
 #include "Mesh.h"
 #include "Shader.h"
+#include "Node.h"
 
 #include <string>
 #include <fstream>
@@ -26,7 +27,7 @@
 #include <vector>
 using namespace std;
 
-class Model
+class Model : public Node
 {
 public:
 	/*  Model Data */
@@ -44,7 +45,8 @@ public:
 	Model(string const &path, bool gamma);
 
 	// draws the model, and thus all its meshes
-	void Draw(Shader shader, glm::mat4 P, glm::mat4 V);
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V);					// Mainly for testing
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Used in scene graph rendering
 
 	// Transformation functions
 	void translate(float x, float y, float z);
@@ -52,6 +54,7 @@ public:
 	void reset();
 	void scale(float factor);
 	void rotate(float angle, glm::vec3 axis);
+	void update();
 
 private:
 	/*  Functions   */

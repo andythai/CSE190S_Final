@@ -687,7 +687,7 @@ protected:
 		}
 
 		obj_shader->use();
-		test_monster->Draw(*obj_shader, projection, glm::inverse(headPose));
+		test_monster->draw(*obj_shader, projection, glm::inverse(headPose));
 	}
 };
 
