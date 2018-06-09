@@ -53,7 +53,8 @@ public:
 	void translate(glm::vec3 transVec);
 	void reset();
 	void scale(float factor);
-	void rotate(float angle, glm::vec3 axis);
+	void scale(glm::vec3 factor_vec);
+	void rotate(float angle, glm::vec3 axis);	// angle passed should be in degrees
 	void update();
 
 private:

@@ -284,10 +284,12 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
 /** Translation Functions **/
 void Model::translate(glm::vec3 transVec) {
 	toWorld = glm::translate(glm::mat4(1.0f), transVec) * toWorld;
+	//toWorld = glm::translate(toWorld, transVec);
 }
 
 void Model::translate(float x, float y, float z) {
 	this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z)) * toWorld;
+	//toWorld = glm::translate(toWorld, glm::vec3(x, y, z));
 }
 
 void Model::reset() {
@@ -295,13 +297,17 @@ void Model::reset() {
 }
 
 void Model::scale(float factor) {
-	float world_X = this->toWorld[3][0] + avg_pos.x;
-	float world_Y = this->toWorld[3][1] + avg_pos.y;
-	float world_Z = this->toWorld[3][2] + avg_pos.z;
+	float world_X = this->toWorld[3][0];
+	float world_Y = this->toWorld[3][1];
+	float world_Z = this->toWorld[3][2];
 
-	this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-world_X, -world_Y, -world_Z)) * toWorld;
+	//this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-world_X, -world_Y, -world_Z)) * toWorld;
 	this->toWorld = glm::scale(glm::mat4(1.0f), glm::vec3(factor, factor, factor)) * toWorld;
-	this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(world_X, world_Y, world_Z)) * toWorld;
+	//this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(world_X, world_Y, world_Z)) * toWorld;
+}
+
+void Model::scale(glm::vec3 factor_vec) {
+	this->toWorld = glm::scale(glm::mat4(1.0f), factor_vec) * toWorld;
 }
 
 void Model::rotate(float angle, glm::vec3 axis) {

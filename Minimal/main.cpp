@@ -601,14 +601,14 @@ public:
 
 	/** Define global variables here **/
 	/* 3D Models */
-	Model * test_monster;							// For testing model rendering. Replace with different obj types
-	Model * sphere, *sword, *treasure, *pedestal;	// Player models, treasure models
-	Model * wk_bot, *str_bot, *wk_mons, *str_mons;	// Enemy models
-	Skybox * stage1, *stage2;						// Skyboxes represent different stages
-													// TODO: MAYBE ADD A TERRAIN?
-	Treasure * treasure_unit;						// Treasure object taken as one unit
-	Player * player_1, * player_2;					// Players
-
+	Model * test_monster;									// For testing model rendering. Replace with different obj types
+	Model * head, *sphere, *sword, *treasure, *pedestal;	// Player models, treasure models
+	Model * wk_bot, *str_bot, *wk_mons, *str_mons;			// Enemy models
+	Skybox * stage1, *stage2;								// Skyboxes represent different stages
+															// TODO: MAYBE ADD A TERRAIN?
+	Treasure * treasure_unit;								// Treasure object taken as one unit
+	Player * player_1, * player_2;							// Players
+	
 	/* Shaders */
 	Shader * obj_shader, *sky_shader;	// Shaders for objects and skybox
 
@@ -620,6 +620,10 @@ public:
 	bool game_over = false;
 	bool button_down = false;
 	float timer = 0.0f;
+
+	/* Position/Transformation indicators */
+	mat4 rHandTransform;
+	mat4 headTransform;
 
 protected:
 	void initGl() override {
@@ -633,6 +637,7 @@ protected:
 		cout << "Loading models..." << endl;
 		// Load up each Model obj
 		test_monster = new Model(string("assets/models/obj/monster.obj"), false);
+		head = new Model(string("assets/models/obj/male_head.obj"), false);
 		sphere = new Model(string("assets/models/obj/sphere2.obj"), false);
 		sword = new Model(string("assets/models/obj/sword_obj.obj"), false);
 		treasure = new Model(string("assets/models/obj/Morgana3D.obj"), false);
@@ -643,8 +648,8 @@ protected:
 		str_mons = new Model(string("assets/models/obj/cacodemon.obj"), false);
 		// Set up stage here
 		treasure_unit = new Treasure(pedestal, treasure);	// Pedestal and treasure treated as one whole unit
-		player_1 = new Player(sphere, sphere, sword, true);
-		player_2 = new Player(sphere, sphere, sword, false);
+		player_1 = new Player(head, sphere, sword, true);
+		player_2 = new Player(head, sphere, sword, false);
 
 		// Skybox image path locations (pz, px, nx, py, ny, nz)
 		std::vector<char *> stage1Faces = {
@@ -694,12 +699,13 @@ protected:
 			}
 		} while (stage_type != 1 && stage_type != 2);
 		*/
+		glEnable(GL_CULL_FACE);
 		cout << "GAME START!" << endl;
 	}
 
 	void shutdownGl() override {
 		/** TODO: DEAL WITH CLEANUP HERE **/
-		delete test_monster, sphere, sword, treasure, pedestal;
+		delete test_monster, head, sphere, sword, treasure, pedestal;
 		delete wk_bot, str_bot, wk_mons, str_mons;
 		delete treasure_unit, player_1, player_2;
 		delete stage1, stage2;
@@ -709,12 +715,41 @@ protected:
 
 	void update() {
 		/** Deal with idle_callbacks here **/
-		// Play stage bgm
+		/* Play stage bgm */
 		sounds->play(0);
+
+		/* Update head and hand positions */
+		// Query Touch controllers. Query their parameters:
+		vec3 handPos;
+		double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);
+		// GET TRACKING STATE
+		ovrTrackingState trackState = ovr_GetTrackingState(_session, displayMidpointSeconds, ovrTrue);
+		// Process controller position and orientation:
+		ovrPosef handPoses[2];  // These are position and orientation in meters in room coordinates, relative to tracking origin. Right-handed cartesian coordinates.
+		handPoses[0] = trackState.HandPoses[0].ThePose;
+		handPoses[1] = trackState.HandPoses[1].ThePose;
+		ovrVector3f handPosition[2];
+		handPosition[0] = handPoses[0].Position;
+		handPosition[1] = handPoses[1].Position;
+		// Right hand
+		handPos = glm::vec3(handPosition[ovrHand_Right].x, handPosition[ovrHand_Right].y, handPosition[ovrHand_Right].z);
+		// Get hand rotation
+		glm::quat controllerRotation = ovr::toGlm(ovrQuatf(handPoses[ovrHand_Right].Orientation));
+		glm::mat4 controllerRotationMat = glm::toMat4(controllerRotation);
+		// Transform via translation
+		glm::mat4 translate_hand = glm::translate(handPos);
+		// Transform via quaternion rotation
+		rHandTransform = translate_hand * controllerRotationMat;
+
+		// Updating head position
+		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));			// Get Position
+		mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get Orientation
+		headTransform = headPosMat * headRotMat;
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
 		// TODO: RENDER MODELS HERE
+		glFrontFace(GL_CW);	// Treat counterclockwise denotation as back face
 		sky_shader->use();
 		switch (stage_type) {
 		case 1:
@@ -724,9 +759,12 @@ protected:
 			stage2->draw(sky_shader->ID, projection, glm::inverse(headPose));
 		}
 
+		glFrontFace(GL_CCW);	// Treat clockwise orientation as back face (default)
 		obj_shader->use();
 		//test_monster->draw(*obj_shader, projection, glm::inverse(headPose));
 		treasure_unit->draw(*obj_shader, projection, glm::inverse(headPose));
+		player_1->draw(*obj_shader, projection, glm::inverse(headPose), rHandTransform);
+		player_1->drawHead(*obj_shader, projection, glm::inverse(headPose), headTransform);
 	}
 };
 

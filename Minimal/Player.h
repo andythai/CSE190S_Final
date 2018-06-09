@@ -43,7 +43,9 @@ public:
 	// TODO: Add function to handle sword hits here
 	void update();
 
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);		// For scene graph
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V);						// Normal rendering
+	void drawHead(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Render the head separately
 
 
 private:
@@ -52,6 +54,9 @@ private:
 	unsigned int playerType;
 	std::vector<Model *> models;	// Will store pointers to head and hand(s)
 	Bound * attack_box;
+
+	/* Private Functions */
+	void initialize();	// Resize and rotate everything to the correct position
 };
 
 #endif
