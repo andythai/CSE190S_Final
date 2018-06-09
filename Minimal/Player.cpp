@@ -18,14 +18,14 @@ Player::Player(Model * head, Model * hand, Model * sword, bool playerType) {
 	models.push_back(sword);
 
 	// Initialize score and player label
+	score = 0;
+	this->playerType = (playerType) ? 1 : 2;
+
 	initialize();
 }
 
 /*------------ HELPER FUNCTIONS --------------*/
 void Player::initialize() {
-	score = 0;
-	this->playerType = (playerType) ? 1 : 2;
-	
 	// Resize and rotate
 	models[RIGHT_HAND]->scale(0.5f);
 	models[SWORD]->scale(1.4f);
@@ -56,8 +56,8 @@ int Player::getScore() {
 void Player::update() { }
 
 void Player::draw(Shader shader, mat4 P, mat4 V, mat4 C) {
-	// TODO: Send info to shader to discriminate between players
-
+	// Send info to shader to discriminate between players
+	shader.setInt(std::string("which_player"), playerType);
 	// Render player
 	models[RIGHT_HAND]->draw(shader, P, V, C);
 	models[SWORD]->draw(shader, P, V, C);
@@ -68,5 +68,7 @@ void Player::draw(Shader shader, mat4 P, mat4 V) {
 }
 
 void Player::drawHead(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
+	// Send info to shader to discriminate between players
+	shader.setInt(std::string("which_player"), playerType);
 	models[HEAD]->draw(shader, P, V, C);
 }

@@ -42,6 +42,9 @@
     <ClCompile Include="Treasure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Curve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -61,6 +64,18 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="Bounds.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="player.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="player.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="enemy_shader.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="enemy_shader.frag">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -99,6 +114,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Treasure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Curve.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

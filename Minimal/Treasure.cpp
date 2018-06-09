@@ -20,12 +20,12 @@ Treasure::~Treasure() { }
 void Treasure::initialize() {
 	health = 25;
 	// Scale
-	models[PEDESTAL_IND]->scale(vec3(1.0f, 2.5f, 1.0f));
-	models[TREASURE_IND]->scale(0.7f);
+	models[PEDESTAL_IND]->scale(vec3(2.0f, 3.5f, 2.0f));
+	models[TREASURE_IND]->scale(0.85f);
 
 	// Translate
-	models[PEDESTAL_IND]->translate(vec3(0, -1.3f, 0.7f));
-	models[TREASURE_IND]->translate(vec3(0, 0.8f - 1.3f, 0.7f));
+	models[PEDESTAL_IND]->translate(vec3(0, -1.3f, 1.0f));
+	models[TREASURE_IND]->translate(vec3(0, 1.1f - 1.3f, 1.0f));
 }
 
 /*------ MORE GAME RELATED FUNCTIONS ------*/

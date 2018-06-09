@@ -76,6 +76,7 @@ using glm::quat;
 #include "Treasure.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Curve.h"
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
@@ -599,7 +600,7 @@ class ExampleApp : public RiftApp {
 public:
 	ExampleApp() {}
 
-	/** Define global variables here **/
+	/** Data variables **/
 	/* 3D Models */
 	Model * test_monster;									// For testing model rendering. Replace with different obj types
 	Model * head, *sphere, *sword, *treasure, *pedestal;	// Player models, treasure models
@@ -608,9 +609,15 @@ public:
 															// TODO: MAYBE ADD A TERRAIN?
 	Treasure * treasure_unit;								// Treasure object taken as one unit
 	Player * player_1, * player_2;							// Players
+	Enemy * test_enemy, *test_enemy2;
+
+	/* Enemy Path testers */
+	Curve * curve1, *curve2, *curve3, *curve4;				// Some tester curves
 	
 	/* Shaders */
-	Shader * obj_shader, *sky_shader;	// Shaders for objects and skybox
+	Shader * obj_shader, *sky_shader;			// Shaders for objects and skybox
+	Shader * treasure_shader, *player_shader;	// Shaders for the treasure and the player
+	Shader * enemy_shader;						// Shader for the enemy
 
 	/* Audio */
 	Audio * sounds;		// Holds sounds (bgm/sound fx)
@@ -624,15 +631,13 @@ public:
 	/* Position/Transformation indicators */
 	mat4 rHandTransform;
 	mat4 headTransform;
+	
+	unsigned int path_ind1 = 0;
+	unsigned int path_ind2 = 0;
+	unsigned int path_ind3 = 0;
 
-protected:
-	void initGl() override {
-		RiftApp::initGl();
-		glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-		glEnable(GL_DEPTH_TEST);
-		ovr_RecenterTrackingOrigin(_session);
-
-		/** TODO: INITIALIZE OUR VARIABLES HERE **/
+	/** ADD PRIVATE FUNCTIONS HERE TO CLEAN UP initGl()? **/
+	void initialize_models() {
 		/* Initialize models here */
 		cout << "Loading models..." << endl;
 		// Load up each Model obj
@@ -650,15 +655,21 @@ protected:
 		treasure_unit = new Treasure(pedestal, treasure);	// Pedestal and treasure treated as one whole unit
 		player_1 = new Player(head, sphere, sword, true);
 		player_2 = new Player(head, sphere, sword, false);
+		test_enemy = new Enemy(str_mons, false, 1.5f);
+		test_enemy2 = new Enemy(wk_mons, false, 0.5f);
+		cout << "Finished loading models!" << std::endl;
+	}
 
-		// Skybox image path locations (pz, px, nx, py, ny, nz)
+	void initialize_stages() {
+		// Skybox image path locations (pz, px, nx, py, ny, nz). Will need to rotate the skybox faces
+		cout << "Loading stages..." << endl;
 		std::vector<char *> stage1Faces = {
-			"assets/skybox/warren/pz.ppm",
-			"assets/skybox/warren/px.ppm",
-			"assets/skybox/warren/nx.ppm",
-			"assets/skybox/warren/py.ppm",
-			"assets/skybox/warren/ny.ppm",
-			"assets/skybox/warren/nz.ppm"
+			"assets/skybox/nuke/nuke_ft.ppm",
+			"assets/skybox/nuke/nuke_lf.ppm",
+			"assets/skybox/nuke/nuke_rt.ppm",
+			"assets/skybox/nuke/nuke_up.ppm",
+			"assets/skybox/nuke/nuke_dn.ppm",
+			"assets/skybox/nuke/nuke_bk.ppm"
 		};
 		std::vector<char *> stage2Faces = {
 			"assets/skybox/blood/blood_ft.ppm",
@@ -670,11 +681,13 @@ protected:
 		};
 		stage1 = new Skybox(stage1Faces);
 		stage2 = new Skybox(stage2Faces);
-		cout << "Finished loading models!" << endl;
+		cout << "Finished loading stages!" << endl;
+	}
 
-		// Initialize audio here
+	void initialize_audio() {
 		cout << "Loading audio..." << endl;
 		std::vector<std::string> bgmFiles;
+		bgmFiles.push_back("assets/sounds/VHS Glitch - Jaw Breaker.wav");
 		bgmFiles.push_back("assets/sounds/taiko_bgm.wav");
 		std::vector<std::string> soundFiles;
 		soundFiles.push_back("assets/sounds/death1.wav");
@@ -682,12 +695,55 @@ protected:
 		soundFiles.push_back("assets/sounds/monster_death2.wav");
 		soundFiles.push_back("assets/sounds/game_over.wav");
 		soundFiles.push_back("assets/sounds/game_win.wav");
+		soundFiles.push_back("assets/sounds/treasur_shield_hit.wav");
+		soundFiles.push_back("assets/sounds/treasur_HP_low.wav");
 		sounds = new Audio(bgmFiles);
 		cout << "Finished loading audio!" << endl;
+	}
 
-		// Initialize shaders here
+	void initialize_shaders() {
 		obj_shader = new Shader("obj_shader.vert", "obj_shader.frag");
 		sky_shader = new Shader("skybox.vert", "skybox.frag");
+		player_shader = new Shader("player.vert", "player.frag");
+		enemy_shader = new Shader("enemy_shader.vert", "enemy_shader.frag");
+	}
+
+	void initialize_enemy_paths() {
+		// Front path 1
+		vec4 p0 = vec4(0, -0.2f, -10.0f, 1.0f);
+		vec4 p1 = vec4(-7.0f, 0.9f, -2.8f, 1.0f);
+		vec4 p2 = vec4(7.0f, -0.2f, -1.4f, 1.0f);
+		vec4 p3 = vec4(0, -0.2f, 1.0f, 1.0f);
+		curve1 = new Curve(mat4(p0, p1, p2, p3), 1300);
+
+		// Back path 1
+		p0 = vec4( 0.0f, 8.0f, 10.0f, 1.0f);
+		p1 = vec4(7.0f, 0.9f, 7.0f, 1.0f);
+		p2 = vec4(-4.0f, 5.0f, 4.0f, 1.0f);
+		curve2 = new Curve(mat4(p0, p1, p2, p3), 800);
+
+		// Path 3
+
+		// Path 4
+	}
+
+protected:
+	void initGl() override {
+		RiftApp::initGl();
+		glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+		glEnable(GL_DEPTH_TEST);
+		ovr_RecenterTrackingOrigin(_session);
+
+		// Initialize 3D models
+		initialize_models();
+		// Load skyboxes
+		initialize_stages();
+		// Initialize audio here
+		initialize_audio();
+		// Initialize shaders here
+		initialize_shaders();
+		// Initialize paths here
+		initialize_enemy_paths();
 
 		// Pick user stage here
 		/*
@@ -699,7 +755,7 @@ protected:
 			}
 		} while (stage_type != 1 && stage_type != 2);
 		*/
-		glEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);			// Enable backface culling
 		cout << "GAME START!" << endl;
 	}
 
@@ -708,15 +764,21 @@ protected:
 		delete test_monster, head, sphere, sword, treasure, pedestal;
 		delete wk_bot, str_bot, wk_mons, str_mons;
 		delete treasure_unit, player_1, player_2;
+		delete test_enemy;
 		delete stage1, stage2;
 		delete sounds;
-		delete obj_shader, sky_shader;
+		delete obj_shader, sky_shader, treasure_shader, player_shader;
 	}
 
 	void update() {
 		/** Deal with idle_callbacks here **/
 		/* Play stage bgm */
-		sounds->play(0);
+		if (stage_type == 1) {
+			sounds->play(0);
+		}
+		else {
+			sounds->play(1);
+		}
 
 		/* Update head and hand positions */
 		// Query Touch controllers. Query their parameters:
@@ -742,13 +804,18 @@ protected:
 		rHandTransform = translate_hand * controllerRotationMat;
 
 		// Updating head position
-		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));			// Get Position
+		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get Position
 		mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get Orientation
 		headTransform = headPosMat * headRotMat;
+
+		/* Update monster movement paths */
+		path_ind1 = (path_ind1 + 1) % curve1->getVertices().size();
+		path_ind2 = (path_ind2 + 1) % curve2->getVertices().size();
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
 		// TODO: RENDER MODELS HERE
+		// Skybox (Stage) Rendering
 		glFrontFace(GL_CW);	// Treat counterclockwise denotation as back face
 		sky_shader->use();
 		switch (stage_type) {
@@ -759,12 +826,20 @@ protected:
 			stage2->draw(sky_shader->ID, projection, glm::inverse(headPose));
 		}
 
+		// Model Rendering
 		glFrontFace(GL_CCW);	// Treat clockwise orientation as back face (default)
 		obj_shader->use();
 		//test_monster->draw(*obj_shader, projection, glm::inverse(headPose));
 		treasure_unit->draw(*obj_shader, projection, glm::inverse(headPose));
-		player_1->draw(*obj_shader, projection, glm::inverse(headPose), rHandTransform);
-		player_1->drawHead(*obj_shader, projection, glm::inverse(headPose), headTransform);
+		player_shader->use();
+		player_1->draw(*player_shader, projection, glm::inverse(headPose), rHandTransform);
+		player_1->drawHead(*player_shader, projection, glm::inverse(headPose), headTransform);
+		enemy_shader->use();
+		test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
+		test_enemy2->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]));
+
+		curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+		curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 	}
 };
 

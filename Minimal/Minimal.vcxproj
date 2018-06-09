@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Bound.cpp" />
+    <ClCompile Include="Curve.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -143,15 +144,20 @@
   <ItemGroup>
     <None Include="Bounds.frag" />
     <None Include="Bounds.vert" />
+    <None Include="enemy_shader.frag" />
+    <None Include="enemy_shader.vert" />
     <None Include="obj_shader.frag" />
     <None Include="obj_shader.vert" />
     <None Include="packages.config" />
+    <None Include="player.frag" />
+    <None Include="player.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Bound.h" />
+    <ClInclude Include="Curve.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />

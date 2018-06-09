@@ -28,6 +28,12 @@ class Enemy : public Node {
 public:
 	/* Public functions */
 	Enemy();
+	/* Enemy main constructor
+	 * enemy_model - ptr to 3D model object
+	 * strong - denotes whether enemy will get 1 or 3 HP
+	 * scale_size - for scaling enemy to correct size
+	 */
+	Enemy(Model * enemy_model, bool strong, float scale_size);
 	~Enemy();
 
 	void spawnMonsters();
@@ -39,6 +45,7 @@ public:
 private:
 	/* Private Data */
 	unsigned int enemyType;
+	int hp;
 	Model * enemy;
 	Bound * hitbox;
 };
