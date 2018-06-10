@@ -69,6 +69,8 @@ using glm::quat;
 #define GAME_WIN 5
 
 /** Define our file inclusions here **/
+#include <chrono>
+#include <ctime>
 #include "Model.h"
 #include "Audio.h"
 #include "Skybox.h"
@@ -77,6 +79,7 @@ using glm::quat;
 #include "Player.h"
 #include "Enemy.h"
 #include "Curve.h"
+
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
 	GLuint status = glCheckFramebufferStatus(target);
@@ -624,9 +627,11 @@ public:
 
 	/* State indicators */
 	unsigned int stage_type = 1;
-	bool game_over = false;
+	bool game_win = false;
+	bool game_lose = false;
+	bool start_game = false;
 	bool button_down = false;
-	float timer = 0.0f;
+	std::chrono::system_clock::time_point start_time;
 
 	/* Position/Transformation indicators */
 	mat4 rHandTransform;
@@ -723,8 +728,16 @@ public:
 		curve2 = new Curve(mat4(p0, p1, p2, p3), 800);
 
 		// Path 3
+		p0 = vec4(-7.0f, 1.0f, 0.0f, 1.0f);
+		p1 = vec4(-5.5f, -1.0f, 1.0f, 1.0f);
+		p2 = vec4(-2.0f, -0.2f, 1.0f, 1.0f);
+		curve3 = new Curve(mat4(p0, p1, p2, p3), 700);
 
 		// Path 4
+		p0 = vec4(9.0f, 2.0f, -3.0f, 1.0f);
+		p1 = vec4(6.4f, 0.0f, 1.0f, 1.0f);
+		p2 = vec4(4.5f, 0.0f, 1.2f, 1.0f);
+		curve4 = new Curve(mat4(p0, p1, p2, p3), 900);
 	}
 
 protected:
@@ -756,7 +769,9 @@ protected:
 		} while (stage_type != 1 && stage_type != 2);
 		*/
 		glEnable(GL_CULL_FACE);			// Enable backface culling
-		cout << "GAME START!" << endl;
+		cout << "Please wait 3 seconds..." << endl;
+		// Start countdown timer by getting current time
+		start_time = std::chrono::system_clock::now();
 	}
 
 	void shutdownGl() override {
@@ -772,45 +787,69 @@ protected:
 
 	void update() {
 		/** Deal with idle_callbacks here **/
-		/* Play stage bgm */
-		if (stage_type == 1) {
-			sounds->play(0);
+		// Update timer
+		std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = current_time - start_time;
+		// Do not go through main game logic until 3 seconds after start
+		if (!start_game) {
+			if (elapsed_seconds.count() > 3.0) {
+				start_game = true;
+				cout << "GAME START!" << endl;
+				// Start time for actual game
+				start_time = std::chrono::system_clock::now();
+			}
 		}
 		else {
-			sounds->play(1);
+			if (elapsed_seconds.count() > 120.0) {
+				game_win = true;
+				// Play win game sound
+				cout << "YOU WIN!" << endl;
+				// Play sound here
+
+				// Print player scores here
+				cout << "PLAYER 1 SCORE: " << endl;
+				cout << "PLAYER 2 SCORE: " << endl;
+			}
+			/* Play stage bgm */
+			if (stage_type == 1) {
+				sounds->play(0);
+			}
+			else {
+				sounds->play(1);
+			}
+
+			/* Update head and hand positions */
+			// Query Touch controllers. Query their parameters:
+			vec3 handPos;
+			double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);
+			// GET TRACKING STATE
+			ovrTrackingState trackState = ovr_GetTrackingState(_session, displayMidpointSeconds, ovrTrue);
+			// Process controller position and orientation:
+			ovrPosef handPoses[2];  // These are position and orientation in meters in room coordinates, relative to tracking origin. Right-handed cartesian coordinates.
+			handPoses[0] = trackState.HandPoses[0].ThePose;
+			handPoses[1] = trackState.HandPoses[1].ThePose;
+			ovrVector3f handPosition[2];
+			handPosition[0] = handPoses[0].Position;
+			handPosition[1] = handPoses[1].Position;
+			// Right hand
+			handPos = glm::vec3(handPosition[ovrHand_Right].x, handPosition[ovrHand_Right].y, handPosition[ovrHand_Right].z);
+			// Get hand rotation
+			glm::quat controllerRotation = ovr::toGlm(ovrQuatf(handPoses[ovrHand_Right].Orientation));
+			glm::mat4 controllerRotationMat = glm::toMat4(controllerRotation);
+			// Transform via translation
+			glm::mat4 translate_hand = glm::translate(handPos);
+			// Transform via quaternion rotation
+			rHandTransform = translate_hand * controllerRotationMat;
+
+			// Updating head position
+			mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get Position
+			mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get Orientation
+			headTransform = headPosMat * headRotMat;
+
+			/* Update monster movement paths */
+			path_ind1 = (path_ind1 + 1) % curve1->getVertices().size();
+			path_ind2 = (path_ind2 + 1) % curve2->getVertices().size();
 		}
-
-		/* Update head and hand positions */
-		// Query Touch controllers. Query their parameters:
-		vec3 handPos;
-		double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);
-		// GET TRACKING STATE
-		ovrTrackingState trackState = ovr_GetTrackingState(_session, displayMidpointSeconds, ovrTrue);
-		// Process controller position and orientation:
-		ovrPosef handPoses[2];  // These are position and orientation in meters in room coordinates, relative to tracking origin. Right-handed cartesian coordinates.
-		handPoses[0] = trackState.HandPoses[0].ThePose;
-		handPoses[1] = trackState.HandPoses[1].ThePose;
-		ovrVector3f handPosition[2];
-		handPosition[0] = handPoses[0].Position;
-		handPosition[1] = handPoses[1].Position;
-		// Right hand
-		handPos = glm::vec3(handPosition[ovrHand_Right].x, handPosition[ovrHand_Right].y, handPosition[ovrHand_Right].z);
-		// Get hand rotation
-		glm::quat controllerRotation = ovr::toGlm(ovrQuatf(handPoses[ovrHand_Right].Orientation));
-		glm::mat4 controllerRotationMat = glm::toMat4(controllerRotation);
-		// Transform via translation
-		glm::mat4 translate_hand = glm::translate(handPos);
-		// Transform via quaternion rotation
-		rHandTransform = translate_hand * controllerRotationMat;
-
-		// Updating head position
-		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get Position
-		mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get Orientation
-		headTransform = headPosMat * headRotMat;
-
-		/* Update monster movement paths */
-		path_ind1 = (path_ind1 + 1) % curve1->getVertices().size();
-		path_ind2 = (path_ind2 + 1) % curve2->getVertices().size();
 	}
 
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
@@ -834,12 +873,16 @@ protected:
 		player_shader->use();
 		player_1->draw(*player_shader, projection, glm::inverse(headPose), rHandTransform);
 		player_1->drawHead(*player_shader, projection, glm::inverse(headPose), headTransform);
-		enemy_shader->use();
-		test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
-		test_enemy2->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]));
 
-		curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
-		curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+		// Render enemies when game properly starts
+		if (start_game) {
+			enemy_shader->use();
+			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
+			test_enemy2->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]));
+
+			curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+		}
 	}
 };
 

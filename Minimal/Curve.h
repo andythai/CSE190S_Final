@@ -38,6 +38,7 @@ private:
 	glm::mat4 toWorld;
 	std::vector<glm::vec3> vertices;
 	std::vector<unsigned int> indices;
+
 	// These variables are needed for the shader program
 	GLuint VBO, VAO, EBO;
 	GLuint uProjection, uModelview;
