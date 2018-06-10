@@ -72,6 +72,7 @@ using glm::quat;
 #define GAME_START 8
 
 #define GAME_TIME_LIMIT 120.0
+#define HP_LIMIT 15
 
 /** Define our file inclusions here **/
 #include <chrono>
@@ -632,7 +633,7 @@ public:
 
 	/* State indicators */
 	unsigned int stage_type = 1;
-	int HP = 10;
+	int HP = HP_LIMIT;
 	bool game_win = false;
 	bool game_lose = false;
 	bool start_game = false;
@@ -646,6 +647,7 @@ public:
 	unsigned int path_ind1 = 0;
 	unsigned int path_ind2 = 0;
 	unsigned int path_ind3 = 0;
+	unsigned int path_ind4 = 0;
 
 	/** Private Functions **/
 	/*----------------- INITIALIZER FUNCTIONS -----------------*/
@@ -785,6 +787,7 @@ public:
 		// Reset states
 		start_game = false;
 		start_time = std::chrono::system_clock::now();
+		HP = HP_LIMIT;
 		path_ind1 = 0;
 		path_ind2 = 0;
 	}
@@ -872,9 +875,35 @@ protected:
 			}
 			// Continue main game updates
 			else {
-				// Update monster movement paths 
-				path_ind1 = (path_ind1 + 1) % curve1->getVertices().size();
-				path_ind2 = (path_ind2 + 1) % curve2->getVertices().size();
+				// Update monster movement paths TODO: ADD TO LIST TO REDUCE REDUNDANCY?
+				path_ind1 += 1;
+				path_ind2 += 1;
+				path_ind3 += 1;
+				path_ind4 += 1;
+
+				// Check if monster has attacked cat
+				if (path_ind1 == curve1->getVertices().size()) {
+					HP--;
+					sounds->play(CAT_HIT);
+				}
+				if (path_ind2 == curve2->getVertices().size()) {
+					HP--;
+					sounds->play(CAT_HIT);
+				}
+				if (path_ind3 == curve3->getVertices().size()) {
+					HP--;
+					sounds->play(CAT_HIT);
+				}
+				if (path_ind4 == curve4->getVertices().size()) {
+					HP--;
+					sounds->play(CAT_HIT);
+				}
+
+				// Reset index
+				path_ind1 = path_ind1 % curve1->getVertices().size();
+				path_ind2 = path_ind2 % curve2->getVertices().size();
+				path_ind3 = path_ind3 % curve3->getVertices().size();
+				path_ind4 = path_ind4 % curve4->getVertices().size();
 			}
 		}
 	}
@@ -903,11 +932,15 @@ protected:
 		if (start_game) {
 			enemy_shader->use();
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
-			test_enemy2->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]));
+			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]) * glm::rotate(glm::pi<float>(), vec3(0, 1, 0)));
+			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));
+			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve4->getVertices()[path_ind4]) * glm::rotate(-glm::pi<float>() / 2, vec3(0, 1, 0)));
 
 			/* DEAL WITH DEBUG CODE HERE */
-			//curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
-			//curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			curve3->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			curve4->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 		}
 	}
 };
