@@ -1,3 +1,6 @@
+/* glsl shader header class (special thanks to learnopengl.com and iv.calit for main code!)
+ * By Ronald Allan Baldonado
+ */
 #pragma once
 #ifndef SHADER_H
 #define SHADER_H

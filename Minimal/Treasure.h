@@ -1,8 +1,6 @@
-#pragma once
 /* By Ronald Allan Baldonado
-* Player class derived from Node.h
-* Compatible with Scene Graph
-*/
+ * Treasure class that defines the treasure and pedestal as a single unit
+ */
 #pragma once
 #ifndef _TREASURE_H_
 #define _TREASURE_H_
@@ -29,26 +27,18 @@
 #include "Model.h"
 #include "Bound.h"
 
-class Treasure : public Node {
+class Treasure {
 public:
 	/* Public functions */
 	Treasure(Model * pedestal, Model * treasure);
 	~Treasure();
 
-	void update();
-	int getHealth();
-	void checkIfHit();
-
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Use if object if its going into scene graph
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V);					// Use if object is not going into scene graph
-
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V);		// Render function
 
 private:
 	/* Private Data */
-	int health;
-	unsigned int playerType;
 	std::vector<Model *> models;	// Will store pointers to head and hand(s)
-	Bound * attack_box;
+	Bound * attack_box;				// Contains the attack box (will it be needed?)
 
 	/* Private Functions */
 	void initialize();	// Move Treasure and pedestal together correctly

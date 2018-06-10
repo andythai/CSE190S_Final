@@ -1,3 +1,7 @@
+/* Model class that uses assimp to load models (special thanks to learnopengl.com for main code!)
+ * By Ronald Allan Baldonado
+ */
+#pragma once
 #ifndef MODEL_H
 #define MODEL_H
 

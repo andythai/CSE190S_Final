@@ -28,7 +28,7 @@
 #include "Model.h"
 #include "Bound.h"
 
-class Player : public Node {
+class Player {
 public:
 	/* Public functions */
 	Player();
@@ -41,11 +41,15 @@ public:
 
 	int getScore();
 	// TODO: Add function to handle sword hits here
-	void update();
 
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);		// For scene graph
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V);						// Normal rendering
-	void drawHead(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Render the head separately
+	/* Player render function
+	 * shader - glsl shader to send vertex and other info to for gfx
+	 * P - projection matrix
+	 * V - view matrix
+	 * handTransform - hand transformation matrix
+	 * headTransform - head transformation matrix
+	 */
+	void drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform, glm::mat4 headTransform);
 
 
 private:

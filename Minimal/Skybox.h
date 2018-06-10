@@ -1,7 +1,9 @@
 #pragma once
 #ifndef _SKYBOX_H_
 #define _SKYBOX_H_
-
+/* Skybox header 
+ * By Ronald Allan Baldonado
+ */
 #define GLFW_INCLUDE_GLEXT
 #ifdef __APPLE__
 #define GLFW_INCLUDE_GLCOREARB
@@ -34,7 +36,7 @@ class Skybox
 private:
 	glm::mat4 toWorld;		// Model matrix
 	/* Contains file paths to each skybox face
-	 * NOTE: Order of faces should be EXACTLY:
+	 * NOTE: Order of faces should be (might be bugged in some manner...):
 	 *		 Front, Right, Left, Up, Down, Back
 	 */
 	std::vector<char *> faces;
@@ -54,7 +56,7 @@ public:
 	Skybox(std::vector<char *> &);	// Pass in face paths in initialization
 	~Skybox();
 
-	void draw(GLuint, const glm::mat4, glm::mat4);	// Render function for oculus
+	void draw(GLuint, const glm::mat4 projection, glm::mat4 modelview);	// Render function for oculus
 };
 
 // Define the coordinates and indices needed to draw the cube. Note that it is not necessary

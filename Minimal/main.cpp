@@ -61,12 +61,17 @@ using glm::quat;
 #include <GL/glew.h>
 
 /** Define any preprocessing directives here **/
-#define BGM1 0
-#define DEATH1 1
-#define MONS_DEATH1 2
-#define MONS_DEATH2 3
-#define GAME_OVR 4
+#define STAGE1_BGM 0
+#define STAGE2_BGM 1
+#define MON_DEATH1 2
+#define MON_DEATH2 3
+#define GAME_OVER 4
 #define GAME_WIN 5
+#define CAT_HIT 6
+#define CAT_LOW_HEALTH 7
+#define GAME_START 8
+
+#define GAME_TIME_LIMIT 120.0
 
 /** Define our file inclusions here **/
 #include <chrono>
@@ -620,13 +625,14 @@ public:
 	/* Shaders */
 	Shader * obj_shader, *sky_shader;			// Shaders for objects and skybox
 	Shader * treasure_shader, *player_shader;	// Shaders for the treasure and the player
-	Shader * enemy_shader;						// Shader for the enemy
+	Shader * enemy_shader, *bound_shader;		// Shader for the enemy
 
 	/* Audio */
 	Audio * sounds;		// Holds sounds (bgm/sound fx)
 
 	/* State indicators */
 	unsigned int stage_type = 1;
+	int HP = 10;
 	bool game_win = false;
 	bool game_lose = false;
 	bool start_game = false;
@@ -641,7 +647,8 @@ public:
 	unsigned int path_ind2 = 0;
 	unsigned int path_ind3 = 0;
 
-	/** ADD PRIVATE FUNCTIONS HERE TO CLEAN UP initGl()? **/
+	/** Private Functions **/
+	/*----------------- INITIALIZER FUNCTIONS -----------------*/
 	void initialize_models() {
 		/* Initialize models here */
 		cout << "Loading models..." << endl;
@@ -691,18 +698,17 @@ public:
 
 	void initialize_audio() {
 		cout << "Loading audio..." << endl;
-		std::vector<std::string> bgmFiles;
-		bgmFiles.push_back("assets/sounds/VHS Glitch - Jaw Breaker.wav");
-		bgmFiles.push_back("assets/sounds/taiko_bgm.wav");
 		std::vector<std::string> soundFiles;
-		soundFiles.push_back("assets/sounds/death1.wav");
+		soundFiles.push_back("assets/sounds/VHS Glitch - Jaw Breaker.wav");
+		soundFiles.push_back("assets/sounds/taiko_bgm.wav");
 		soundFiles.push_back("assets/sounds/monster_death1.wav");
 		soundFiles.push_back("assets/sounds/monster_death2.wav");
 		soundFiles.push_back("assets/sounds/game_over.wav");
 		soundFiles.push_back("assets/sounds/game_win.wav");
 		soundFiles.push_back("assets/sounds/treasur_shield_hit.wav");
 		soundFiles.push_back("assets/sounds/treasur_HP_low.wav");
-		sounds = new Audio(bgmFiles);
+		soundFiles.push_back("assets/sounds/game_start.wav");
+		sounds = new Audio(soundFiles);
 		cout << "Finished loading audio!" << endl;
 	}
 
@@ -711,6 +717,7 @@ public:
 		sky_shader = new Shader("skybox.vert", "skybox.frag");
 		player_shader = new Shader("player.vert", "player.frag");
 		enemy_shader = new Shader("enemy_shader.vert", "enemy_shader.frag");
+		bound_shader = new Shader("bounds.vert", "bounds.frag");
 	}
 
 	void initialize_enemy_paths() {
@@ -738,6 +745,48 @@ public:
 		p1 = vec4(6.4f, 0.0f, 1.0f, 1.0f);
 		p2 = vec4(4.5f, 0.0f, 1.2f, 1.0f);
 		curve4 = new Curve(mat4(p0, p1, p2, p3), 900);
+	}
+
+	/*------------------ UPDATE FUNCTIONS -------------------*/
+	void updateHeadAndHandTransforms() {
+		// Query Touch controllers. Query their parameters:
+		double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);
+		// GET TRACKING STATE
+		ovrTrackingState trackState = ovr_GetTrackingState(_session, displayMidpointSeconds, ovrTrue);
+
+		// Updating hand transformation
+		mat4 translate_hand = glm::translate(ovr::toGlm(trackState.HandPoses[ovrHand_Right].ThePose.Position));						// Get hand position
+		mat4 controllerRotationMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HandPoses[ovrHand_Right].ThePose.Orientation)));	// Get hand orientation
+		rHandTransform = translate_hand * controllerRotationMat;
+
+		// Updating head transformation
+		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get head position
+		mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get head orientation
+		headTransform = headPosMat * headRotMat;
+	}
+	
+	void handleGameState(bool wonGame) {
+		if (wonGame) {
+			game_win = true;
+			// Play win game sound
+			sounds->play(GAME_WIN);
+			cout << "YOU WIN!" << endl;
+		}
+		else {
+			game_win = false;
+			// Play lose game sound
+			sounds->play(GAME_OVER);
+			cout << "YOU LOSE!" << endl;
+		}
+		// Print player scores here
+		cout << "PLAYER 1 SCORE: " << endl;
+		cout << "PLAYER 2 SCORE: " << endl;
+
+		// Reset states
+		start_game = false;
+		start_time = std::chrono::system_clock::now();
+		path_ind1 = 0;
+		path_ind2 = 0;
 	}
 
 protected:
@@ -782,11 +831,22 @@ protected:
 		delete test_enemy;
 		delete stage1, stage2;
 		delete sounds;
-		delete obj_shader, sky_shader, treasure_shader, player_shader;
+		delete obj_shader, sky_shader, treasure_shader, player_shader, bound_shader;
 	}
 
 	void update() {
 		/** Deal with idle_callbacks here **/
+		// Update head and hand transformation matrices
+		updateHeadAndHandTransforms();
+
+		// Play stage bgm
+		if (stage_type == 1) {
+			sounds->play(STAGE1_BGM);
+		}
+		else {
+			sounds->play(STAGE2_BGM);
+		}
+
 		// Update timer
 		std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = current_time - start_time;
@@ -795,65 +855,32 @@ protected:
 			if (elapsed_seconds.count() > 3.0) {
 				start_game = true;
 				cout << "GAME START!" << endl;
+				// Play sound
+				sounds->play(GAME_START);
 				// Start time for actual game
 				start_time = std::chrono::system_clock::now();
 			}
 		}
 		else {
-			if (elapsed_seconds.count() > 120.0) {
-				game_win = true;
-				// Play win game sound
-				cout << "YOU WIN!" << endl;
-				// Play sound here
-
-				// Print player scores here
-				cout << "PLAYER 1 SCORE: " << endl;
-				cout << "PLAYER 2 SCORE: " << endl;
+			// Check if players won
+			if (elapsed_seconds.count() >= GAME_TIME_LIMIT) {
+				handleGameState(true);
 			}
-			/* Play stage bgm */
-			if (stage_type == 1) {
-				sounds->play(0);
+			// Check if players lost
+			else if (HP == 0) {
+				handleGameState(false);
 			}
+			// Continue main game updates
 			else {
-				sounds->play(1);
+				// Update monster movement paths 
+				path_ind1 = (path_ind1 + 1) % curve1->getVertices().size();
+				path_ind2 = (path_ind2 + 1) % curve2->getVertices().size();
 			}
-
-			/* Update head and hand positions */
-			// Query Touch controllers. Query their parameters:
-			vec3 handPos;
-			double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);
-			// GET TRACKING STATE
-			ovrTrackingState trackState = ovr_GetTrackingState(_session, displayMidpointSeconds, ovrTrue);
-			// Process controller position and orientation:
-			ovrPosef handPoses[2];  // These are position and orientation in meters in room coordinates, relative to tracking origin. Right-handed cartesian coordinates.
-			handPoses[0] = trackState.HandPoses[0].ThePose;
-			handPoses[1] = trackState.HandPoses[1].ThePose;
-			ovrVector3f handPosition[2];
-			handPosition[0] = handPoses[0].Position;
-			handPosition[1] = handPoses[1].Position;
-			// Right hand
-			handPos = glm::vec3(handPosition[ovrHand_Right].x, handPosition[ovrHand_Right].y, handPosition[ovrHand_Right].z);
-			// Get hand rotation
-			glm::quat controllerRotation = ovr::toGlm(ovrQuatf(handPoses[ovrHand_Right].Orientation));
-			glm::mat4 controllerRotationMat = glm::toMat4(controllerRotation);
-			// Transform via translation
-			glm::mat4 translate_hand = glm::translate(handPos);
-			// Transform via quaternion rotation
-			rHandTransform = translate_hand * controllerRotationMat;
-
-			// Updating head position
-			mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get Position
-			mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get Orientation
-			headTransform = headPosMat * headRotMat;
-
-			/* Update monster movement paths */
-			path_ind1 = (path_ind1 + 1) % curve1->getVertices().size();
-			path_ind2 = (path_ind2 + 1) % curve2->getVertices().size();
 		}
 	}
 
+	// RENDER MODELS HERE
 	void renderScene(const glm::mat4 & projection, const glm::mat4 & headPose) override {
-		// TODO: RENDER MODELS HERE
 		// Skybox (Stage) Rendering
 		glFrontFace(GL_CW);	// Treat counterclockwise denotation as back face
 		sky_shader->use();
@@ -868,11 +895,9 @@ protected:
 		// Model Rendering
 		glFrontFace(GL_CCW);	// Treat clockwise orientation as back face (default)
 		obj_shader->use();
-		//test_monster->draw(*obj_shader, projection, glm::inverse(headPose));
 		treasure_unit->draw(*obj_shader, projection, glm::inverse(headPose));
 		player_shader->use();
-		player_1->draw(*player_shader, projection, glm::inverse(headPose), rHandTransform);
-		player_1->drawHead(*player_shader, projection, glm::inverse(headPose), headTransform);
+		player_1->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform, headTransform);
 
 		// Render enemies when game properly starts
 		if (start_game) {
@@ -880,8 +905,9 @@ protected:
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
 			test_enemy2->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]));
 
-			curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
-			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			/* DEAL WITH DEBUG CODE HERE */
+			//curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			//curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 		}
 	}
 };

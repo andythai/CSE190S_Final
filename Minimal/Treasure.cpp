@@ -18,7 +18,6 @@ Treasure::~Treasure() { }
 
 /*------------- HELPER FUNCTIONS --------------*/
 void Treasure::initialize() {
-	health = 25;
 	// Scale
 	models[PEDESTAL_IND]->scale(vec3(2.0f, 3.5f, 2.0f));
 	models[TREASURE_IND]->scale(0.85f);
@@ -29,20 +28,6 @@ void Treasure::initialize() {
 }
 
 /*------ MORE GAME RELATED FUNCTIONS ------*/
-void Treasure::update() {
-
-}
-
-int Treasure::getHealth() {
-	return health;
-}
-
-void Treasure::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
-	for (Model * parts : models) {
-		parts->draw(shader, P, V, C);
-	}
-}
-
 void Treasure::draw(Shader shader, glm::mat4 P, glm::mat4 V) {
 	for (Model * parts : models) {
 		parts->draw(shader, P, V);

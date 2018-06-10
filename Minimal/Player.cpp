@@ -53,22 +53,11 @@ int Player::getScore() {
 	return score;
 }
 
-void Player::update() { }
-
-void Player::draw(Shader shader, mat4 P, mat4 V, mat4 C) {
+void Player::drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform, glm::mat4 headTransform) {
 	// Send info to shader to discriminate between players
 	shader.setInt(std::string("which_player"), playerType);
-	// Render player
-	models[RIGHT_HAND]->draw(shader, P, V, C);
-	models[SWORD]->draw(shader, P, V, C);
-}
-
-void Player::draw(Shader shader, mat4 P, mat4 V) {
-	// FILL LATER?
-}
-
-void Player::drawHead(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
-	// Send info to shader to discriminate between players
-	shader.setInt(std::string("which_player"), playerType);
-	models[HEAD]->draw(shader, P, V, C);
+	// Render player 
+	models[RIGHT_HAND]->draw(shader, P, V, handTransform);
+	models[SWORD]->draw(shader, P, V, handTransform);
+	models[HEAD]->draw(shader, P, V, headTransform);
 }

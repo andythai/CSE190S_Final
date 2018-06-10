@@ -1,4 +1,7 @@
-/* For drawing a cubic bezier curve using uniform sampling */
+/* By Ronald Allan Baldonado
+ * Header class defining implementation of uniform sampled bezier curve
+ * Particular implementation used for defining enemy path in game
+ */
 #pragma once
 #ifndef CURVE_H
 #define CURVE_H
@@ -24,6 +27,7 @@
 class Curve {
 private:
 	/* Data */
+	// Used in calculating points for the bezier curve
 	glm::mat4 b_bez = {
 		-1.0f, 3.0f, -3.0f, 1.0f,
 		3.0f, -6.0f, 3.0f, 0.0f,
@@ -49,10 +53,13 @@ private:
 	// Calculates points on curve based on number of samples and fills vertices and indices
 	void calc_pnts();
 public:
-
+	/* Public Functions*/
 	Curve();
-	Curve(glm::mat4);								// Default number of samples is 150
-	Curve(glm::mat4, unsigned int num_samples);		// Pick your own number of samples
+	/* Curve constructor
+	 * control_pts - 4x4 matrix where each column defines a 4-vector for a bezier curve control point
+	 */
+	Curve(glm::mat4 control_pts);								// Default number of samples is 150
+	Curve(glm::mat4 control_pts, unsigned int num_samples);		// Pick your own number of samples by passing it in as num_samples
 	~Curve();
 
 	std::vector<glm::vec3> & getVertices();			

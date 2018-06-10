@@ -1,5 +1,5 @@
-/* Master Audio class to play BGMs, sound effects, etc
- * Ronald Allan V. Baldonado & Andy Thai
+/* Audio class to play BGMs, sound effects, etc
+ * Made by Ronald Allan Baldonado and Andy Thai
  */
 #pragma once
 #ifndef AUDIO_H

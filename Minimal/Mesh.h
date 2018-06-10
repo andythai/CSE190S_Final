@@ -1,3 +1,6 @@
+/* Mesh class (special thanks to learnopengl.com for the main code of this class)
+ * By Ronald Allan V. Baldonado
+ */
 #pragma once
 #ifndef MESH_H
 #define MESH_H

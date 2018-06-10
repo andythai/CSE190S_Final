@@ -1,4 +1,6 @@
-/* Transform class derived from Node class. This class is used to deal with robot transformations */
+/* Transform class derived from Node class. This class is used to deal with scene graph transformation
+ * By Ronald Allan Baldonado
+ */
 #pragma once
 #ifndef TRANSFORM_H
 #define TRANSFORM_H

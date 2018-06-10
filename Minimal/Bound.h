@@ -1,6 +1,6 @@
-/****************************************************/
-/*****	by ANDY THAI and RONALD ALLAN BALDONADO	*****/
-/****************************************************/
+/* By Andy Thai and Ronald Allan Baldonado
+ * Header class for bounding boxes used for hit detection and collision
+ */
 #pragma once
 #ifndef _BOUND_H_
 #define _BOUND_H_

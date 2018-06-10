@@ -1,3 +1,6 @@
+/* By Ronald Allan Baldonado
+ * Enemy class for VR app
+ */
 #pragma once
 #ifndef _ENEMY_H_
 #define _ENEMY_H_
@@ -30,15 +33,20 @@ public:
 	Enemy();
 	/* Enemy main constructor
 	 * enemy_model - ptr to 3D model object
-	 * strong - denotes whether enemy will get 1 or 3 HP
+	 * strong - denotes whether enemy will get 1 or 3 HP (most likely just gonna use 1 HP for simplicity
 	 * scale_size - for scaling enemy to correct size
 	 */
 	Enemy(Model * enemy_model, bool strong, float scale_size);
 	~Enemy();
 
-	void spawnMonsters();
-	bool wasHit();
+	// ADD MORE GAME FUNCTIONS FOR ENEMY HERE
 
+	/* Render function for enemy
+	 * shader - glsl shader for rasterization and other gfx
+	 * P - projection matrix
+	 * V - view matrix
+	 * C - transformation matrix
+	 */
 	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 	void update();
 
