@@ -72,7 +72,8 @@ using glm::quat;
 #define GAME_START 8
 
 #define GAME_TIME_LIMIT 120.0
-#define HP_LIMIT 15
+#define HP_LIMIT 5
+#define LOW_HEALTH_LIMIT 4
 
 /** Define our file inclusions here **/
 #include <chrono>
@@ -611,17 +612,17 @@ public:
 
 	/** Data variables **/
 	/* 3D Models */
-	Model * test_monster;									// For testing model rendering. Replace with different obj types
 	Model * head, *sphere, *sword, *treasure, *pedestal;	// Player models, treasure models
-	Model * wk_bot, *str_bot, *wk_mons, *str_mons;			// Enemy models
+	Model * str_mons;										// Enemy models
 	Skybox * stage1, *stage2;								// Skyboxes represent different stages
-															// TODO: MAYBE ADD A TERRAIN?
+	// TODO: MAYBE ADD A TERRAIN?
 	Treasure * treasure_unit;								// Treasure object taken as one unit
 	Player * player_1, * player_2;							// Players
-	Enemy * test_enemy, *test_enemy2;
+	Enemy * test_enemy;
 
 	/* Enemy Path testers */
 	Curve * curve1, *curve2, *curve3, *curve4;				// Some tester curves
+	vector<Curve *> path_container;
 	
 	/* Shaders */
 	Shader * obj_shader, *sky_shader;			// Shaders for objects and skybox
@@ -644,10 +645,12 @@ public:
 	mat4 rHandTransform, rHandTranslate, rHandRotate;
 	mat4 headTransform;
 	
+	/* Path indices */
 	unsigned int path_ind1 = 0;
 	unsigned int path_ind2 = 0;
 	unsigned int path_ind3 = 0;
 	unsigned int path_ind4 = 0;
+	vector<unsigned int *> path_ind_container;
 
 	/** Private Functions **/
 	/*----------------- INITIALIZER FUNCTIONS -----------------*/
@@ -655,22 +658,17 @@ public:
 		/* Initialize models here */
 		cout << "Loading models..." << endl;
 		// Load up each Model obj
-		test_monster = new Model(string("assets/models/obj/monster.obj"), false);
 		head = new Model(string("assets/models/obj/male_head.obj"), false);
 		sphere = new Model(string("assets/models/obj/sphere2.obj"), false);
 		sword = new Model(string("assets/models/obj/sword_obj.obj"), false);
 		treasure = new Model(string("assets/models/obj/Morgana3D.obj"), false);
 		pedestal = new Model(string("assets/models/obj/001_Pedestal_high_poly.obj"), false);
-		wk_bot = new Model(string("assets/models/obj/Anim_Idle.obj"), false);
-		str_bot = new Model(string("assets/models/obj/redBot.obj"), false);
-		wk_mons = new Model(string("assets/models/obj/monster.obj"), false);
 		str_mons = new Model(string("assets/models/obj/cacodemon.obj"), false);
 		// Set up stage here
 		treasure_unit = new Treasure(pedestal, treasure);	// Pedestal and treasure treated as one whole unit
 		player_1 = new Player(head, sphere, sword, true);
 		player_2 = new Player(head, sphere, sword, false);
 		test_enemy = new Enemy(str_mons, false, 1.5f);
-		test_enemy2 = new Enemy(wk_mons, false, 0.5f);
 		cout << "Finished loading models!" << std::endl;
 	}
 
@@ -723,30 +721,41 @@ public:
 	}
 
 	void initialize_enemy_paths() {
-		// Front path 1
+		// Front path
 		vec4 p0 = vec4(0, -0.2f, -10.0f, 1.0f);
 		vec4 p1 = vec4(-7.0f, 0.9f, -2.8f, 1.0f);
 		vec4 p2 = vec4(7.0f, -0.2f, -1.4f, 1.0f);
 		vec4 p3 = vec4(0, -0.2f, 1.0f, 1.0f);
 		curve1 = new Curve(mat4(p0, p1, p2, p3), 1300);
 
-		// Back path 1
+		// Back path
 		p0 = vec4( 0.0f, 8.0f, 10.0f, 1.0f);
 		p1 = vec4(7.0f, 0.9f, 7.0f, 1.0f);
 		p2 = vec4(-4.0f, 5.0f, 4.0f, 1.0f);
 		curve2 = new Curve(mat4(p0, p1, p2, p3), 800);
 
-		// Path 3
+		// Left path
 		p0 = vec4(-7.0f, 1.0f, 0.0f, 1.0f);
 		p1 = vec4(-5.5f, -1.0f, 1.0f, 1.0f);
 		p2 = vec4(-2.0f, -0.2f, 1.0f, 1.0f);
 		curve3 = new Curve(mat4(p0, p1, p2, p3), 700);
 
-		// Path 4
+		// Right path
 		p0 = vec4(9.0f, 2.0f, -3.0f, 1.0f);
 		p1 = vec4(6.4f, 0.0f, 1.0f, 1.0f);
 		p2 = vec4(4.5f, 0.0f, 1.2f, 1.0f);
 		curve4 = new Curve(mat4(p0, p1, p2, p3), 900);
+
+		// Populate containers
+		path_container.push_back(curve1);
+		path_container.push_back(curve2);
+		path_container.push_back(curve3);
+		path_container.push_back(curve4);
+		path_ind_container.push_back(&path_ind1);
+		path_ind_container.push_back(&path_ind2);
+		path_ind_container.push_back(&path_ind3);
+		path_ind_container.push_back(&path_ind4);
+
 	}
 
 	/*------------------ UPDATE FUNCTIONS -------------------*/
@@ -792,6 +801,70 @@ public:
 		HP = HP_LIMIT;
 		path_ind1 = 0;
 		path_ind2 = 0;
+		path_ind3 = 0;
+		path_ind4 = 0;
+	}
+
+	void handleMainGameLogic() {
+		// Update sword bounding box
+		player_1->updateBoundingBox(rHandTransform);
+
+		// Go through each path (1 monster is on each path at a time)
+		for (unsigned int i = 0; i < path_container.size(); i++) {
+			// Update monster hitbox
+			test_enemy->updateHitBox(glm::translate(path_container[i]->getVertices()[*(path_ind_container[i])]));
+			// Check if box is hit
+			if (player_1->checkHit(test_enemy->getHitBox())) {
+				*(path_ind_container[i]) = 0;
+				sounds->play(MON_DEATH1);
+			}
+			// Update monster movement
+			else {
+				(*(path_ind_container[i]))++;
+			}
+
+			if (*(path_ind_container[i]) == path_container[i]->getVertices().size()) {
+				HP--;
+				sounds->play(CAT_HIT);
+			}
+		}
+		// Check if low HP
+		if (HP <= LOW_HEALTH_LIMIT) {
+			sounds->play(CAT_LOW_HEALTH);
+		}
+		/*
+		if (path_ind1 == curve1->getVertices().size()) {
+			HP--;
+			sounds->play(CAT_HIT);
+			//cout << HP << endl;
+		}
+		if (path_ind2 == curve2->getVertices().size()) {
+			HP--;
+			sounds->play(CAT_HIT);
+			//cout << HP << endl;
+		}
+		if (path_ind3 == curve3->getVertices().size()) {
+			HP--;
+			sounds->play(CAT_HIT);
+			//cout << HP << endl;
+		}
+		if (path_ind4 == curve4->getVertices().size()) {
+			HP--;
+			sounds->play(CAT_HIT);
+			//cout << HP << endl;
+		}
+		*/
+
+		// Reset index
+		for (unsigned int i = 0; i < path_container.size(); i++) {
+			(*path_ind_container[i]) = *(path_ind_container[i]) % path_container[i]->getVertices().size();
+		}
+		/*
+		path_ind1 = path_ind1 % curve1->getVertices().size();
+		path_ind2 = path_ind2 % curve2->getVertices().size();
+		path_ind3 = path_ind3 % curve3->getVertices().size();
+		path_ind4 = path_ind4 % curve4->getVertices().size();
+		*/
 	}
 
 protected:
@@ -812,7 +885,7 @@ protected:
 		// Initialize paths here
 		initialize_enemy_paths();
 
-		// Pick user stage here
+		// Pick user stage here (HAD TO CUT OUT)
 		/*
 		do {
 			cout << "PICK A STAGE: 1 OR 2..." << endl;
@@ -830,8 +903,8 @@ protected:
 
 	void shutdownGl() override {
 		/** TODO: DEAL WITH CLEANUP HERE **/
-		delete test_monster, head, sphere, sword, treasure, pedestal;
-		delete wk_bot, str_bot, wk_mons, str_mons;
+		delete head, sphere, sword, treasure, pedestal;
+		delete str_mons;
 		delete treasure_unit, player_1, player_2;
 		delete test_enemy;
 		delete stage1, stage2;
@@ -877,39 +950,7 @@ protected:
 			}
 			// Continue main game updates
 			else {
-				// Update monster movement paths TODO: ADD TO LIST TO REDUCE REDUNDANCY?
-				path_ind1 += 1;
-				path_ind2 += 1;
-				path_ind3 += 1;
-				path_ind4 += 1;
-
-				// Check if monster has attacked cat
-				if (path_ind1 == curve1->getVertices().size()) {
-					HP--;
-					sounds->play(CAT_HIT);
-					//cout << HP << endl;
-				}
-				if (path_ind2 == curve2->getVertices().size()) {
-					HP--;
-					sounds->play(CAT_HIT);
-					//cout << HP << endl;
-				}
-				if (path_ind3 == curve3->getVertices().size()) {
-					HP--;
-					sounds->play(CAT_HIT);
-					//cout << HP << endl;
-				}
-				if (path_ind4 == curve4->getVertices().size()) {
-					HP--;
-					sounds->play(CAT_HIT);
-					//cout << HP << endl;
-				}
-
-				// Reset index
-				path_ind1 = path_ind1 % curve1->getVertices().size();
-				path_ind2 = path_ind2 % curve2->getVertices().size();
-				path_ind3 = path_ind3 % curve3->getVertices().size();
-				path_ind4 = path_ind4 % curve4->getVertices().size();
+				handleMainGameLogic();
 			}
 		}
 	}
@@ -943,11 +984,12 @@ protected:
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve4->getVertices()[path_ind4]) * glm::rotate(-glm::pi<float>() / 2, vec3(0, 1, 0)));
 
-			/* DEAL WITH DEBUG CODE HERE */
+			/* DEAL WITH DEBUG CODE HERE
 			curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve3->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve4->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			*/
 			
 			
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

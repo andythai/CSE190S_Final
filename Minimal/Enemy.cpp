@@ -33,6 +33,14 @@ void Enemy::update() {
 
 }
 
+void Enemy::updateHitBox(glm::mat4 transform_mat) {
+	hitbox->update(transform_mat);
+}
+
+Bound * Enemy::getHitBox() {
+	return hitbox;
+}
+
 void Enemy::initialize_hitbox() {
 	vec3 box_size = glm::scale(mat4(1.0f), vec3(scale_factor)) * vec4(enemy->getBoxDimensions(), 1.0f);
 	hitbox = new Bound(box_size.x / 4.0f, box_size.y / 4.0f, box_size.z / 4.0f);

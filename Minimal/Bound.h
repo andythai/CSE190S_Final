@@ -52,6 +52,7 @@ public:
 	void draw(GLuint shaderProg, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 
 	void update();
+	void update(glm::mat4 transform_mat);
 	void spin(float deg);
 	bool check_collision(Bound * other);
 

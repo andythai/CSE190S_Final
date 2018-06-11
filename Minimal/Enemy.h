@@ -49,7 +49,8 @@ public:
 	 */
 	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 	void update();
-	void initialize_hitbox();
+	void updateHitBox(glm::mat4 transform_mat);
+	Bound * getHitBox();
 	void drawHitBox(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 
 private:
@@ -58,6 +59,9 @@ private:
 	float scale_factor;
 	Model * enemy;
 	Bound * hitbox;
+
+	/* Private Functions */
+	void initialize_hitbox();
 };
 
 #endif

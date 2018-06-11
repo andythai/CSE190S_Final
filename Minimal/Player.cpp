@@ -68,18 +68,16 @@ int Player::getScore() {
 	return score;
 }
 
-void Player::update_hitbox(glm::mat4 boxTransform) {
-	// Check if sword bounding box exists
-	if (attack_box == NULL) {
-		std::cout << "Player " << playerType << "'s bounding box has not been initialize!" << std::endl;
-		return;
-	}
-
-	attack_box->toWorld = boxTransform;
-}
-
 float Player::getSwordScaleFactor() {
 	return sword_scale_factor;
+}
+
+void Player::updateBoundingBox(mat4 transform_mat) {
+	attack_box->update(transform_mat);
+}
+
+bool Player::checkHit(Bound * toCompare) {
+	return attack_box->check_collision(toCompare);
 }
 
 void Player::drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform, glm::mat4 headTransform) {

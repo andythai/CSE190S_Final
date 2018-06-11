@@ -218,6 +218,23 @@ void Bound::update()
 	std::sort(this->z_list.begin(), this->z_list.end());
 }
 
+void Bound::update(glm::mat4 transform_mat) {
+	// Fill axis lists
+	x_list.clear();
+	y_list.clear();
+	z_list.clear();
+	for (int i = 0; i < 8; i++) {
+		glm::vec4 new_point = glm::vec4(vertices[i][0], vertices[i][1], vertices[i][2], 1.0f);
+		new_point =  transform_mat * this->toWorld * new_point;
+		x_list.push_back(new_point[0]);
+		y_list.push_back(new_point[1]);
+		z_list.push_back(new_point[2]);
+	}
+	std::sort(this->x_list.begin(), this->x_list.end());
+	std::sort(this->y_list.begin(), this->y_list.end());
+	std::sort(this->z_list.begin(), this->z_list.end());
+}
+
 void Bound::spin(float deg)
 {
 	// If you haven't figured it out from the last project, this is how you fix spin's behavior

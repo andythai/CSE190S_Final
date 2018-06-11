@@ -53,9 +53,9 @@ public:
 	void drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 hand_translate, glm::mat4 hand_rotate, glm::mat4 headTransform);
 	void drawBoundingBox(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform);
 
-	void update_hitbox(glm::mat4 boxTransform);		// Update hitbox transformation
-
 	float getSwordScaleFactor();
+	void updateBoundingBox(glm::mat4 transform_mat);
+	bool checkHit(Bound * toCompare);
 
 private:
 	/* Private Data */
