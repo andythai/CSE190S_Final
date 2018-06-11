@@ -89,15 +89,6 @@ void Player::drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handT
 	models[HEAD]->draw(shader, P, V, headTransform);
 }
 
-void Player::drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 hand_translate, glm::mat4 hand_rotate, glm::mat4 headTransform) {
-	// Send info to shader to discriminate between players
-	shader.setInt(std::string("which_player"), playerType);
-	// Render player 
-	models[RIGHT_HAND]->draw(shader, P, V, hand_rotate, hand_translate);
-	models[SWORD]->draw(shader, P, V, hand_rotate, hand_translate);
-	models[HEAD]->draw(shader, P, V, headTransform);
-}
-
 void Player::drawBoundingBox(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform) {
 	// Check if sword bounding box exists
 	if (attack_box == NULL) {

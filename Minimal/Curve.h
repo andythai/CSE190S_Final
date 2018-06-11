@@ -55,14 +55,23 @@ private:
 public:
 	/* Public Functions*/
 	Curve();
-	/* Curve constructor
+	/* Curve constructor. Default number of samples is 150
 	 * control_pts - 4x4 matrix where each column defines a 4-vector for a bezier curve control point
 	 */
-	Curve(glm::mat4 control_pts);								// Default number of samples is 150
+	Curve(glm::mat4 control_pts);
+	/* Curve constructor.
+	 * control_pts - 4x4 matrix where each column defines a 4-vector for a bezier curve control point
+	 * num_samples - Number of samples
+	 */
 	Curve(glm::mat4 control_pts, unsigned int num_samples);		// Pick your own number of samples by passing it in as num_samples
 	~Curve();
 
+	// Curve vertices getter method
 	std::vector<glm::vec3> & getVertices();			
-
+	/* Curve render function
+	 * shaderProgram - glsl shader ID
+	 * P - Projection matrix
+	 * V - view matrix
+	 */
 	void draw(GLint shaderProgram, glm::mat4 P, glm::mat4 V);
 };

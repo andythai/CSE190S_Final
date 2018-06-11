@@ -39,8 +39,6 @@ public:
 	Enemy(Model * enemy_model, bool strong, float scale_size);
 	~Enemy();
 
-	// ADD MORE GAME FUNCTIONS FOR ENEMY HERE
-
 	/* Render function for enemy
 	 * shader - glsl shader for rasterization and other gfx
 	 * P - projection matrix
@@ -48,9 +46,20 @@ public:
 	 * C - transformation matrix
 	 */
 	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
+	// Does not do anything
 	void update();
+	/* Update hit box by calling hitbox's update method
+	 * transform_mat - Transformation matrix
+	 */
 	void updateHitBox(glm::mat4 transform_mat);
+	// Hitbox getter method
 	Bound * getHitBox();
+	/* Hitbox render method.
+	 * shader - glsl shader
+	 * P - projection matrix
+	 * V - view matrix
+	 * C - transformation matrix
+	 */
 	void drawHitBox(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 
 private:

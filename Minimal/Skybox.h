@@ -52,11 +52,16 @@ private:
 	void loadTextures();
 
 public:
-	Skybox();						// Default initialization
-	Skybox(std::vector<char *> &);	// Pass in face paths in initialization
+	Skybox();									// Default initialization
+	Skybox(std::vector<char *> & path_names);	// Pass in face paths in initialization
 	~Skybox();
 
-	void draw(GLuint, const glm::mat4 projection, glm::mat4 modelview);	// Render function for oculus
+	/* Skybox render function
+	 * shaderProgram - glsl shader ID
+	 * projection - projection matrix
+	 * modelview - modelview matrix
+	 */
+	void draw(GLuint shaderProgram, const glm::mat4 projection, glm::mat4 modelview);
 };
 
 // Define the coordinates and indices needed to draw the cube. Note that it is not necessary

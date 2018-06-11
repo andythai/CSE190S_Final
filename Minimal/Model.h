@@ -49,11 +49,19 @@ public:
 	// constructor, expects a filepath to a 3D model.
 	Model(string const &path, bool gamma);
 
-	// draws the model, and thus all its meshes
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V);													
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);									// C is some transformation to add to the model matrix (C * toWorld)
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 rot_scale_mat, glm::mat4 trans_mat);	// if C consists of both rotation/scaling as well as translation and will be a problem,
-																										// deal with this case (trans_mat * toWorld * rot_scale_mat)
+	/* Draws all the model 's mesh objects 
+	 * shader - glsl shader
+	 * P - projection matrix
+	 * V - view matrix
+	 */
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V);	
+	/* Draws all the model 's mesh objects
+	 * shader - glsl shader
+	 * P - projection matrix
+	 * V - view matrix
+	 * C - some transformation matrix to add to the model matrix (C * toWorld)
+	 */
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 
 	// Transformation functions
 	void translate(float x, float y, float z);
@@ -61,12 +69,12 @@ public:
 	void reset();
 	void scale(float factor);
 	void scale(glm::vec3 factor_vec);
-	void scaleRHD(float factor);				// Multiply the scale matrix from the right hand side of the toWorld matrix
 	void rotate(float angle, glm::vec3 axis);	// angle passed should be in degrees
 	void update();
 
-	// Getter functions
+	// Get the toWorld matrix
 	glm::mat4 getToWorld();
+	// Get the dimensions of the model's rectangular bounding box
 	glm::vec3 getBoxDimensions();
 
 private:

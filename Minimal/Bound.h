@@ -47,11 +47,15 @@ public:
 	 * shaderProg - ID of glsl shader
 	 * P - projection matrix
 	 * V - view matrix
-	 * C - transform matrix (such as for hand transformation
+	 * C - transform matrix (such as for hand transformation)
 	 */
 	void draw(GLuint shaderProg, glm::mat4 P, glm::mat4 V, glm::mat4 C);
-
+	
+	// Updates the bounding box (uses the toWorld matrix)
 	void update();
+	/* Update the bounding box
+	 * transform_mat - to multiply to the toWorld matrix without changing it (transform_mat * toWorld)
+	 */
 	void update(glm::mat4 transform_mat);
 	void spin(float deg);
 	bool check_collision(Bound * other);

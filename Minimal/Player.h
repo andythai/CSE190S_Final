@@ -31,13 +31,15 @@
 class Player {
 public:
 	/* Public functions */
-	Player();
-	/* Constructor for player object
-	 * Model *'s - Points to 3D objects to keep track of
+	Player();	// Default ctor
+	/* ctor for player object
+	 * head - ptr to 3D head object
+	 * hand - ptr to 3D hand object
+	 * sword - ptr to 3D sword object
 	 * playerType - true = Player 1, false = Player 2
 	 */
 	Player(Model * head, Model * hand, Model * sword, bool playerType);
-	~Player();
+	~Player();	// Default dtor
 
 	int getScore();
 	// TODO: Add function to handle sword hits here

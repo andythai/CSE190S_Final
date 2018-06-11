@@ -618,32 +618,32 @@ public:
 	// TODO: MAYBE ADD A TERRAIN?
 	Treasure * treasure_unit;								// Treasure object taken as one unit
 	Player * player_1, * player_2;							// Players
-	Enemy * test_enemy;
+	Enemy * test_enemy;										// Enemy
 
 	/* Enemy Path testers */
-	Curve * curve1, *curve2, *curve3, *curve4;				// Some tester curves
-	vector<Curve *> path_container;
+	Curve * curve1, *curve2, *curve3, *curve4;				// Enemy paths
+	vector<Curve *> path_container;							// Contains pointers to enemy paths
 	
 	/* Shaders */
-	Shader * obj_shader, *sky_shader;			// Shaders for objects and skybox
-	Shader * treasure_shader, *player_shader;	// Shaders for the treasure and the player
-	Shader * enemy_shader, *bound_shader;		// Shader for the enemy
+	Shader * obj_shader, *sky_shader;						// Shaders for objects and skybox
+	Shader * treasure_shader, *player_shader;				// Shaders for the treasure and the player
+	Shader * enemy_shader, *bound_shader;					// Shader for the enemy
 
 	/* Audio */
-	Audio * sounds;		// Holds sounds (bgm/sound fx)
+	Audio * sounds;											// Holds sounds (bgm/sound fx)
 
 	/* State indicators */
-	unsigned int stage_type = 1;
-	int HP = HP_LIMIT;
-	bool game_win = false;
-	bool game_lose = false;
-	bool start_game = false;
-	bool button_down = false;
-	std::chrono::system_clock::time_point start_time;
+	unsigned int stage_type = 1;							// Stage to load (NOT ENOUGH TIME TO IMPLEMENT)
+	int HP = HP_LIMIT;										// HP of the cat
+	bool game_win = false;									// Game win state
+	bool game_lose = false;									// Game lose state
+	bool start_game = false;								// Start game start
+	bool button_down = false;								// Button press state
+	std::chrono::system_clock::time_point start_time;		// Keep track of time at each starting call
 
 	/* Position/Transformation indicators */
-	mat4 rHandTransform, rHandTranslate, rHandRotate;
-	mat4 headTransform;
+	mat4 rHandTransform;									// Right hand transformation (translation * rotation)
+	mat4 headTransform;										// Head transformation matrix (translation * rotation)
 	
 	/* Path indices */
 	unsigned int path_ind1 = 0;
@@ -769,8 +769,6 @@ public:
 		mat4 translate_hand = glm::translate(ovr::toGlm(trackState.HandPoses[ovrHand_Right].ThePose.Position));						// Get hand position
 		mat4 controllerRotationMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HandPoses[ovrHand_Right].ThePose.Orientation)));	// Get hand orientation
 		rHandTransform = translate_hand * controllerRotationMat;
-		rHandRotate = controllerRotationMat;
-		rHandTranslate = translate_hand;
 
 		// Updating head transformation
 		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get head position
@@ -779,12 +777,14 @@ public:
 	}
 	
 	void handleGameState(bool wonGame) {
+		// Did you win?
 		if (wonGame) {
 			game_win = true;
 			// Play win game sound
 			sounds->play(GAME_WIN);
 			cout << "YOU WIN!" << endl;
 		}
+		// Did you lose?
 		else {
 			game_win = false;
 			// Play lose game sound
@@ -822,7 +822,7 @@ public:
 			else {
 				(*(path_ind_container[i]))++;
 			}
-
+			// Check if enemy has reached the cat
 			if (*(path_ind_container[i]) == path_container[i]->getVertices().size()) {
 				HP--;
 				sounds->play(CAT_HIT);
@@ -832,39 +832,11 @@ public:
 		if (HP <= LOW_HEALTH_LIMIT) {
 			sounds->play(CAT_LOW_HEALTH);
 		}
-		/*
-		if (path_ind1 == curve1->getVertices().size()) {
-			HP--;
-			sounds->play(CAT_HIT);
-			//cout << HP << endl;
-		}
-		if (path_ind2 == curve2->getVertices().size()) {
-			HP--;
-			sounds->play(CAT_HIT);
-			//cout << HP << endl;
-		}
-		if (path_ind3 == curve3->getVertices().size()) {
-			HP--;
-			sounds->play(CAT_HIT);
-			//cout << HP << endl;
-		}
-		if (path_ind4 == curve4->getVertices().size()) {
-			HP--;
-			sounds->play(CAT_HIT);
-			//cout << HP << endl;
-		}
-		*/
 
 		// Reset index
 		for (unsigned int i = 0; i < path_container.size(); i++) {
 			(*path_ind_container[i]) = *(path_ind_container[i]) % path_container[i]->getVertices().size();
 		}
-		/*
-		path_ind1 = path_ind1 % curve1->getVertices().size();
-		path_ind2 = path_ind2 % curve2->getVertices().size();
-		path_ind3 = path_ind3 % curve3->getVertices().size();
-		path_ind4 = path_ind4 % curve4->getVertices().size();
-		*/
 	}
 
 protected:
@@ -990,7 +962,6 @@ protected:
 			curve3->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve4->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			*/
-			
 			
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			bound_shader->use();

@@ -19,11 +19,6 @@ void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
 		meshes[i].Draw(shader, C * toWorld, V, P);
 }
 
-void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 rot_scale_mat, glm::mat4 trans_mat) {
-	for (unsigned int i = 0; i < meshes.size(); i++)
-		meshes[i].Draw(shader, trans_mat * toWorld * rot_scale_mat, V, P);
-}
-
 /** Helper Functions **/
 unsigned int TextureFromFile(const char *path, const string &directory)
 {
@@ -326,9 +321,6 @@ void Model::scale(glm::vec3 factor_vec) {
 	this->toWorld = glm::scale(glm::mat4(1.0f), factor_vec) * toWorld;
 }
 
-void Model::scaleRHD(float factor) {
-	this->toWorld = toWorld * glm::scale(glm::mat4(1.0f), glm::vec3(factor, factor, factor));
-}
 void Model::rotate(float angle, glm::vec3 axis) {
 	
 	float world_X = this->toWorld[3][0] + avg_pos.x;
