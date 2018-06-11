@@ -38,6 +38,7 @@ public:
 	glm::mat4 toWorld;
 	float scale_factor;
 	glm::vec3 avg_pos;
+	glm::vec3 xyz_dimensions;	// Contains the max rectangular box dimensions of the model (taking in only the vertex data)
 
 	vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 	vector<Mesh> meshes;
@@ -49,8 +50,10 @@ public:
 	Model(string const &path, bool gamma);
 
 	// draws the model, and thus all its meshes
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V);					// Mainly for testing
-	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);	// Used in scene graph rendering
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V);													
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);									// C is some transformation to add to the model matrix (C * toWorld)
+	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 rot_scale_mat, glm::mat4 trans_mat);	// if C consists of both rotation/scaling as well as translation and will be a problem,
+																										// deal with this case (trans_mat * toWorld * rot_scale_mat)
 
 	// Transformation functions
 	void translate(float x, float y, float z);
@@ -58,8 +61,13 @@ public:
 	void reset();
 	void scale(float factor);
 	void scale(glm::vec3 factor_vec);
+	void scaleRHD(float factor);				// Multiply the scale matrix from the right hand side of the toWorld matrix
 	void rotate(float angle, glm::vec3 axis);	// angle passed should be in degrees
 	void update();
+
+	// Getter functions
+	glm::mat4 getToWorld();
+	glm::vec3 getBoxDimensions();
 
 private:
 	/*  Functions   */

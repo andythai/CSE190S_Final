@@ -641,7 +641,7 @@ public:
 	std::chrono::system_clock::time_point start_time;
 
 	/* Position/Transformation indicators */
-	mat4 rHandTransform;
+	mat4 rHandTransform, rHandTranslate, rHandRotate;
 	mat4 headTransform;
 	
 	unsigned int path_ind1 = 0;
@@ -760,6 +760,8 @@ public:
 		mat4 translate_hand = glm::translate(ovr::toGlm(trackState.HandPoses[ovrHand_Right].ThePose.Position));						// Get hand position
 		mat4 controllerRotationMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HandPoses[ovrHand_Right].ThePose.Orientation)));	// Get hand orientation
 		rHandTransform = translate_hand * controllerRotationMat;
+		rHandRotate = controllerRotationMat;
+		rHandTranslate = translate_hand;
 
 		// Updating head transformation
 		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get head position
@@ -885,18 +887,22 @@ protected:
 				if (path_ind1 == curve1->getVertices().size()) {
 					HP--;
 					sounds->play(CAT_HIT);
+					//cout << HP << endl;
 				}
 				if (path_ind2 == curve2->getVertices().size()) {
 					HP--;
 					sounds->play(CAT_HIT);
+					//cout << HP << endl;
 				}
 				if (path_ind3 == curve3->getVertices().size()) {
 					HP--;
 					sounds->play(CAT_HIT);
+					//cout << HP << endl;
 				}
 				if (path_ind4 == curve4->getVertices().size()) {
 					HP--;
 					sounds->play(CAT_HIT);
+					//cout << HP << endl;
 				}
 
 				// Reset index
@@ -930,6 +936,7 @@ protected:
 
 		// Render enemies when game properly starts
 		if (start_game) {
+			/**/
 			enemy_shader->use();
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]) * glm::rotate(glm::pi<float>(), vec3(0, 1, 0)));
@@ -941,6 +948,17 @@ protected:
 			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve3->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve4->draw(enemy_shader->ID, projection, glm::inverse(headPose));
+			
+			
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			bound_shader->use();
+			player_1->drawBoundingBox(*bound_shader, projection, glm::inverse(headPose), rHandTransform);
+			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
+			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]) * glm::rotate(glm::pi<float>(), vec3(0, 1, 0)));
+			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));
+			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve4->getVertices()[path_ind4]) * glm::rotate(-glm::pi<float>() / 2, vec3(0, 1, 0)));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			
 		}
 	}
 };

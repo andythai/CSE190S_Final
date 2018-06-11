@@ -49,11 +49,13 @@ public:
 	 */
 	void draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 	void update();
+	void initialize_hitbox();
+	void drawHitBox(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C);
 
 private:
 	/* Private Data */
 	unsigned int enemyType;
-	int hp;
+	float scale_factor;
 	Model * enemy;
 	Bound * hitbox;
 };

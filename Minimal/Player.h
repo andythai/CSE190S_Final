@@ -50,14 +50,20 @@ public:
 	 * headTransform - head transformation matrix
 	 */
 	void drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform, glm::mat4 headTransform);
+	void drawPlayer(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 hand_translate, glm::mat4 hand_rotate, glm::mat4 headTransform);
+	void drawBoundingBox(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 handTransform);
 
+	void update_hitbox(glm::mat4 boxTransform);		// Update hitbox transformation
+
+	float getSwordScaleFactor();
 
 private:
 	/* Private Data */
 	unsigned int score;
 	unsigned int playerType;
+	float sword_scale_factor;		// Contains sword scale factor
 	std::vector<Model *> models;	// Will store pointers to head and hand(s)
-	Bound * attack_box;
+	Bound * attack_box = NULL;		// Sword hitbox
 
 	/* Private Functions */
 	void initialize();	// Resize and rotate everything to the correct position

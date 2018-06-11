@@ -19,6 +19,11 @@ void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 C) {
 		meshes[i].Draw(shader, C * toWorld, V, P);
 }
 
+void Model::draw(Shader shader, glm::mat4 P, glm::mat4 V, glm::mat4 rot_scale_mat, glm::mat4 trans_mat) {
+	for (unsigned int i = 0; i < meshes.size(); i++)
+		meshes[i].Draw(shader, trans_mat * toWorld * rot_scale_mat, V, P);
+}
+
 /** Helper Functions **/
 unsigned int TextureFromFile(const char *path, const string &directory)
 {
@@ -241,9 +246,20 @@ void Model::centerAndResize() {
 	// Bound to a 0.5 x 0.5 x 0.5 cube
 	size = size / 0.5f;
 	this->scale_factor = 1.0f / size;
+	
+	// Calculate bounding box size
+	xyz_dimensions = glm::vec3(max_x - min_x, max_y - min_y, max_z - min_z);
+	xyz_dimensions = glm::scale(glm::mat4(1.0f), glm::vec3(scale_factor)) * glm::vec4(xyz_dimensions, 1.0f);
 
 	// Move model
 	this->translate(-avg_pos);
+	/*
+	for (Mesh mesh : meshes) {
+		for (Vertex vert : mesh.vertices) {
+			vert.Position - avg_pos;
+		}
+	}
+	*/
 	this->scale(scale_factor);
 }
 
@@ -297,9 +313,9 @@ void Model::reset() {
 }
 
 void Model::scale(float factor) {
-	float world_X = this->toWorld[3][0];
-	float world_Y = this->toWorld[3][1];
-	float world_Z = this->toWorld[3][2];
+	float world_X = this->toWorld[3][0] + avg_pos.x;
+	float world_Y = this->toWorld[3][1] + avg_pos.y;
+	float world_Z = this->toWorld[3][2] + avg_pos.z;
 
 	//this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-world_X, -world_Y, -world_Z)) * toWorld;
 	this->toWorld = glm::scale(glm::mat4(1.0f), glm::vec3(factor, factor, factor)) * toWorld;
@@ -310,14 +326,33 @@ void Model::scale(glm::vec3 factor_vec) {
 	this->toWorld = glm::scale(glm::mat4(1.0f), factor_vec) * toWorld;
 }
 
+void Model::scaleRHD(float factor) {
+	this->toWorld = toWorld * glm::scale(glm::mat4(1.0f), glm::vec3(factor, factor, factor));
+}
 void Model::rotate(float angle, glm::vec3 axis) {
+	
+	float world_X = this->toWorld[3][0] + avg_pos.x;
+	float world_Y = this->toWorld[3][1] + avg_pos.y;
+	float world_Z = this->toWorld[3][2] + avg_pos.z;
+	
+	/*
 	float world_X = this->toWorld[3][0];
 	float world_Y = this->toWorld[3][1];
 	float world_Z = this->toWorld[3][2];
+	*/
 
-	this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-world_X, -world_Y, -world_Z)) * toWorld;
+	//this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-world_X, -world_Y, -world_Z)) * toWorld;
 	this->toWorld = glm::rotate(glm::mat4(1.0f), angle / 180.0f * glm::pi<float>(), axis) * toWorld;
-	this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(world_X, world_Y, world_Z)) * toWorld;
+	//this->toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(world_X, world_Y, world_Z)) * toWorld;
 }
 
 void Model::update() { }
+
+/*------------------------ GETTER FUNCTIONS --------------------------*/
+glm::mat4 Model::getToWorld() {
+	return toWorld;
+}
+
+glm::vec3 Model::getBoxDimensions() {
+	return xyz_dimensions;
+}

@@ -41,7 +41,16 @@ public:
 	Bound(float x, float y, float z);
 	~Bound();
 
-	void draw(GLuint shaderProg, glm::mat4 P, glm::mat4 V);
+	void draw(GLuint shaderProg, glm::mat4 P, glm::mat4 V);	// LEGACY CODE, MAY NOT WORK ON THIS CODE
+
+	/* Render functions that takes into account a passed in transform C
+	 * shaderProg - ID of glsl shader
+	 * P - projection matrix
+	 * V - view matrix
+	 * C - transform matrix (such as for hand transformation
+	 */
+	void draw(GLuint shaderProg, glm::mat4 P, glm::mat4 V, glm::mat4 C);
+
 	void update();
 	void spin(float deg);
 	bool check_collision(Bound * other);
