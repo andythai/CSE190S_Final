@@ -57,17 +57,21 @@ void ServerGame::receiveFromClients()
 
                 case INIT_CONNECTION:
 
-                    printf("server received init packet from client\n");
+                    printf("server received init packet from client. Successful connection!\n");
 
+					// Found 2nd player!
+					player2Found = true;
+
+					// Notify player 2 of connection
                     sendActionPackets();
 
                     break;
 
                 case ACTION_EVENT:
 
-                    printf("server received action event packet from client\n");
+                    printf("server received action event packet from client. Connection established!\n");
 
-                    sendActionPackets();
+                    //sendActionPackets();
 
                     break;
 
@@ -107,7 +111,7 @@ void ServerGame::sendActionPackets()
     network->sendToAll(packet_data,packet_size);
 }
 
-void ServerGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds) {
+void ServerGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds, std::vector<bool> states) {
 	// Get packet size
 	const unsigned int packet_size = sizeof(Packet);
 	char packet_data[packet_size];

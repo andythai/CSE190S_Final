@@ -17,6 +17,13 @@ limitations under the License.
 
 ************************************************************************************/
 
+// May need stdafx.h for visual studio
+#include "stdafx.h"
+#include "ServerGame.h"
+#include "ClientGame.h"
+// used for multi-threading
+#include <process.h>
+
 #include <iostream>
 #include <memory>
 #include <exception>
@@ -91,6 +98,19 @@ using glm::quat;
 #include "Player.h"
 #include "Enemy.h"
 #include "Curve.h"
+
+/* Server/Client data */
+ServerGame * server;
+ClientGame * client;
+
+/*------------------ NETWORK FUNCTIONS -----------------*/
+void serverLoop(void * arg)
+{
+	while (true)
+	{
+		server->update();
+	}
+}
 
 
 bool checkFramebufferStatus(GLenum target = GL_FRAMEBUFFER) {
@@ -639,11 +659,14 @@ public:
 
 	/* State indicators */
 	unsigned int stage_type = 1;							// Stage to load (NOT ENOUGH TIME TO IMPLEMENT)
-	unsigned int server_or_client = 1;						//
+	unsigned int server_or_client = 1;						// Is the instance a server or a client?
 	int HP = HP_LIMIT;										// HP of the cat
 	bool game_win = false;									// Game win state
 	bool game_lose = false;									// Game lose state
+	bool cat_hit = false;
+	bool play_monster_noise = false;
 	bool start_game = false;								// Start game start
+	bool start_timer = false;								// Start timer when connection established
 	bool button_down = false;								// Button press state
 	std::chrono::system_clock::time_point start_time;		// Keep track of time at each starting call
 
@@ -657,6 +680,7 @@ public:
 	unsigned int path_ind3 = 0;
 	unsigned int path_ind4 = 0;
 	vector<unsigned int *> path_ind_container;
+
 
 	/** Private Functions **/
 	/*----------------- INITIALIZER FUNCTIONS -----------------*/
@@ -765,6 +789,32 @@ public:
 	}
 
 	/*------------------ UPDATE FUNCTIONS -------------------*/
+	void sendDataOverNetwork() {
+		// Server version
+		if (server_or_client == SERVER && server->player2Found) {
+			vector<unsigned int> path_inds;
+			for (unsigned int i = 0; i < 4; i++) {
+				path_inds.push_back(*(path_ind_container[i]));
+			}
+			vector<bool> states;
+			states.push_back(game_win);
+			states.push_back(game_lose);
+			states.push_back(play_monster_noise);
+			states.push_back(cat_hit);
+			// Send player1 location and enemy location to player2
+			server->sendPackets(rHandTransform1, headTransform1, path_inds, states);
+		}
+		// Client version
+		else if (server_or_client == CLIENT && client->player1Found) {
+			// Send player2 location to player1
+			client->sendPackets(rHandTransform2, headTransform2);
+			// Fill up path indices
+			for (unsigned int i = 0; i < 4; i++) {
+				*(path_ind_container[i]) = client->receivedPathInds[i];
+			}
+		}
+	}
+
 	void updateHeadAndHandTransforms() {
 		// Query Touch controllers. Query their parameters:
 		double displayMidpointSeconds = ovr_GetPredictedDisplayTime(_session, 0);
@@ -774,12 +824,32 @@ public:
 		// Updating hand transformation
 		mat4 translate_hand = glm::translate(ovr::toGlm(trackState.HandPoses[ovrHand_Right].ThePose.Position));						// Get hand position
 		mat4 controllerRotationMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HandPoses[ovrHand_Right].ThePose.Orientation)));	// Get hand orientation
-		rHandTransform1 = translate_hand * controllerRotationMat;
 
 		// Updating head transformation
 		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get head position
 		mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get head orientation
-		headTransform1 = headPosMat * headRotMat;
+
+		// Fill up the correct player matrices
+		// Server version
+		if (server_or_client == SERVER) {
+			rHandTransform1 = translate_hand * controllerRotationMat;
+			headTransform1 = headPosMat * headRotMat;
+			// Update player 2 information if player 2 has been connected
+			if (server->player2Found) {
+				rHandTransform2 = server->receivedHandTransform;
+				headTransform2 = server->receivedHeadTransform;
+			}
+		}
+		// Client version
+		else if (server_or_client == CLIENT){
+			rHandTransform2 = translate_hand * controllerRotationMat;
+			headTransform2 = headPosMat * headRotMat;
+			// Update player 1 information if player 1 has been found
+			if (client->player1Found) {
+				rHandTransform1 = client->receivedHandTransform;
+				headTransform1 = client->receivedHeadTransform;
+			}
+		}
 	}
 	
 	void handleGameState(bool wonGame) {
@@ -811,36 +881,55 @@ public:
 	void handleMainGameLogic() {
 		// Update sword bounding box
 		player_1->updateBoundingBox(rHandTransform1);
+		player_2->updateBoundingBox(rHandTransform2);
 
-		// Go through each path (1 monster is on each path at a time)
-		for (unsigned int i = 0; i < path_container.size(); i++) {
-			// Update monster hitbox
-			test_enemy->updateHitBox(glm::translate(path_container[i]->getVertices()[*(path_ind_container[i])]));
-			// Check if box is hit
-			if (player_1->checkHit(test_enemy->getHitBox())) {
-				*(path_ind_container[i]) = 0;
-				sounds->play(MON_DEATH1);
+		if (server_or_client == CLIENT) {
+			for (unsigned int i = 0; i < 4; i++) {
+				*(path_ind_container[i]) = client->receivedPathInds[i];
 			}
-			// Update monster movement
-			else {
-				(*(path_ind_container[i]))++;
-			}
-			// Check if enemy has reached the cat
-			if (*(path_ind_container[i]) == path_container[i]->getVertices().size()) {
-				HP--;
-				sounds->play(CAT_HIT);
-			}
-		}
-		// Check if low HP
-		if (HP <= LOW_HEALTH_LIMIT) {
-			sounds->play(CAT_LOW_HEALTH);
 		}
 
-		// Reset index
-		for (unsigned int i = 0; i < path_container.size(); i++) {
-			(*path_ind_container[i]) = *(path_ind_container[i]) % path_container[i]->getVertices().size();
-		}
+		// The server handles the main game logic
+			// Go through each path (1 monster is on each path at a time)
+			for (unsigned int i = 0; i < path_container.size(); i++) {
+				// Update monster hitbox
+				test_enemy->updateHitBox(glm::translate(path_container[i]->getVertices()[*(path_ind_container[i])]));
+				// Check if box is hit
+				if (player_1->checkHit(test_enemy->getHitBox())) {
+					*(path_ind_container[i]) = 0;
+					sounds->play(MON_DEATH1);
+					play_monster_noise = true;
+				}
+				if (player_2->checkHit(test_enemy->getHitBox())) {
+					*(path_ind_container[i]) = 0;
+					sounds->play(MON_DEATH1);
+					play_monster_noise = true;
+				}
+
+				// Update monster movement
+				else {
+					(*(path_ind_container[i]))++;
+				}
+				// Check if enemy has reached the cat
+				if (*(path_ind_container[i]) == path_container[i]->getVertices().size()) {
+					HP--;
+					sounds->play(CAT_HIT);
+					// PLAY CAT HIT bool
+					cat_hit = true;
+				}
+			}
+			// Check if low HP
+			if (HP <= LOW_HEALTH_LIMIT) {
+				sounds->play(CAT_LOW_HEALTH);
+			}
+			// Reset index
+			for (unsigned int i = 0; i < path_container.size(); i++) {
+				(*path_ind_container[i]) = *(path_ind_container[i]) % path_container[i]->getVertices().size();
+			}
+
+		
 	}
+
 
 protected:
 	void initGl() override {
@@ -860,29 +949,30 @@ protected:
 		// Initialize paths here
 		initialize_enemy_paths();
 
-		/*
-		cout << "Size of mat4 " << sizeof(mat4) << endl;
-		cout << "Size of char " << sizeof(char) << endl;
-		cout << "Size of unsigned int " << sizeof(unsigned int) << endl;
-		*/
-
-		/* Pick server or client here 
+		/* Pick server or client here */
 		do {
 			cout << "PICK A TYPE: SERVER = 1 | CLIENT = 2..." << endl;
 			cin >> server_or_client;
-			if (server_or_client != 1 && server_or_client != 2) {
+			if (server_or_client != SERVER && server_or_client != CLIENT) {
 				cout << "Invalid option! Try again!" << endl;
 			}
 		} while (server_or_client != 1 && server_or_client != 2);
 		
-		cout << "Waiting on other player..." << endl;
-		// Stall until both server and client players are ready TODO
-		*/
+		// Initialize the server if this is the server version of game
+		if (server_or_client == SERVER) {
+			server = new ServerGame();
 
-		glEnable(GL_CULL_FACE);			// Enable backface culling
-		cout << "Please wait 5 seconds..." << endl;
-		// Start countdown timer by getting current time
-		start_time = std::chrono::system_clock::now();
+			// create thread with arbitrary argument for the run function. Listen for client!
+			_beginthread(serverLoop, 0, (void*)12);
+		}
+		// initialize the client if game is client version
+		else {
+			client = new ClientGame();
+		}
+
+		// Enable backface culling
+		glEnable(GL_CULL_FACE);
+		
 	}
 
 	void shutdownGl() override {
@@ -896,10 +986,29 @@ protected:
 		delete obj_shader, sky_shader, treasure_shader, player_shader, bound_shader;
 	}
 
+	/** Deal with idle_callbacks here **/
 	void update() {
-		/** Deal with idle_callbacks here **/
+		// Send data to server/client
+		sendDataOverNetwork();
 		// Update head and hand transformation matrices
 		updateHeadAndHandTransforms();
+		
+		// Check if player2Found (server version)
+		if (server_or_client == SERVER && server->player2Found) {
+			if (!start_timer) {
+				cout << "Please wait 5 seconds..." << endl;
+				// Start clock
+				start_time = std::chrono::system_clock::now();
+				start_timer = true;
+			}
+		}
+		// Check if player1Found (client version)
+		else if (server_or_client == CLIENT && client->player1Found && !start_timer) {
+			cout << "Please wait 5 seconds..." << endl;
+			// Start clock
+			start_time = std::chrono::system_clock::now();
+			start_timer = true;
+		}
 
 		// Play stage bgm
 		if (stage_type == 1) {
@@ -909,12 +1018,13 @@ protected:
 			sounds->play(STAGE2_BGM);
 		}
 
+		
 		// Update timer
 		std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = current_time - start_time;
-		// Do not go through main game logic until 3 seconds after start
+		// Do not go through main game logic until 5 seconds after start
 		if (!start_game) {
-			if (elapsed_seconds.count() > 5.0) {
+			if (elapsed_seconds.count() > 5.0 && start_timer) {
 				start_game = true;
 				cout << "GAME START!" << endl;
 				// Play sound
@@ -959,8 +1069,18 @@ protected:
 		treasure_unit->draw(*obj_shader, projection, glm::inverse(headPose));
 		// Player rendering
 		player_shader->use();
-		player_1->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform1, headTransform1);
-		player_2->drawPlayer(*player_shader, projection, glm::inverse(headPose), mat4(1.0f), mat4(1.0f));
+		if (server_or_client == SERVER) {
+			player_1->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform1, headTransform1);
+			if (server->player2Found) {
+				player_2->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform2, headTransform2);
+			}
+		}
+		else if (server_or_client == CLIENT) {
+			player_2->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform2, headTransform2);
+			if (client->player1Found) {
+				player_1->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform1, headTransform1);
+			}
+		}
 
 		// Render enemies when game properly starts
 		if (start_game) {
@@ -992,6 +1112,7 @@ protected:
 		}
 	}
 };
+
 
 // Execute our example class
 //int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {

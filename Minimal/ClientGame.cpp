@@ -46,6 +46,8 @@ void ClientGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform)
 	// Fill data to send with player 2 data
 	Packet packet;
 	packet.packet_type = HEAD_HAND_TRANSFORMS;
+	packet.hand_transform = hand_transform;
+	packet.head_transform = head_transform;
 
 	packet.serialize(packet_data);
 
@@ -73,14 +75,15 @@ void ClientGame::update()
 
             case ACTION_EVENT:
 
-                printf("client received action event packet from server\n");
+                printf("client received action event packet from server. Successful connection!\n");
 
-                sendActionPackets();
+				player1Found = true;
+                //sendActionPackets();
 
                 break;
 
 			case HEAD_HAND_TRANSFORMS:
-				printf("client received HEAD_HAND_TRANSFORMS! This is incorrect!\n");
+				printf("client received HEAD_HAND_TRANSFORMS only! This is incorrect!\n");
 				break;
 
 			case TRANSFORMS_AND_INDICES:

@@ -18,6 +18,9 @@ public:
 	glm::mat4 receivedHeadTransform;
 	unsigned int receivedPathInds[4];
 
+	// Check if player 1 has been found
+	bool player1Found = false;
+
 	void sendActionPackets();
 	/* Send packet containing head and hand transformation data to server
 	 * hand_transform - hand rotation and translation

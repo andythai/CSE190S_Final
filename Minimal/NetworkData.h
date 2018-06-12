@@ -18,7 +18,6 @@
 #include <vector>
 
 #define MAX_PACKET_SIZE 1000000
-#define PACKET_SIZE 148
 
 enum PacketTypes {
 	// Send/Receive packets to indicate connection
@@ -27,7 +26,7 @@ enum PacketTypes {
 	ACTION_EVENT = 1,
 	// Contains two mat4 data
 	HEAD_HAND_TRANSFORMS = 2,
-	// Contains path indices
+	// Contains path indices as well as two mat4 data
 	TRANSFORMS_AND_INDICES = 3,
 
 };
