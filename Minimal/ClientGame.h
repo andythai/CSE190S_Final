@@ -18,6 +18,7 @@ public:
 	glm::mat4 receivedHeadTransform;
 	unsigned int receivedPathInds[4];
 
+
 	// Check if player 1 has been found
 	bool player1Found = false;
 

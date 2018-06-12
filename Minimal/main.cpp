@@ -102,6 +102,7 @@ using glm::quat;
 /* Server/Client data */
 ServerGame * server;
 ClientGame * client;
+unsigned int server_or_client = 1;						// Is the instance a server or a client?
 
 /*------------------ NETWORK FUNCTIONS -----------------*/
 void serverLoop(void * arg)
@@ -329,6 +330,9 @@ protected:
 		switch (key) {
 		case GLFW_KEY_ESCAPE:
 			glfwSetWindowShouldClose(window, 1);
+			if (server_or_client == CLIENT) {
+				closesocket(client->network->ConnectSocket);
+			}
 			return;
 		}
 	}
@@ -659,7 +663,6 @@ public:
 
 	/* State indicators */
 	unsigned int stage_type = 1;							// Stage to load (NOT ENOUGH TIME TO IMPLEMENT)
-	unsigned int server_or_client = 1;						// Is the instance a server or a client?
 	int HP = HP_LIMIT;										// HP of the cat
 	bool game_win = false;									// Game win state
 	bool game_lose = false;									// Game lose state

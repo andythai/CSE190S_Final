@@ -22,6 +22,8 @@ public:
 
 	void sendActionPackets();
 
+	void close_server();
+
 	/* Send player 2 and enemies' location data to clients
 	 * hand_transform - hand transformation matrix
 	 * head_transform - head transformation matrix
