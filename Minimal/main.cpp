@@ -61,6 +61,7 @@ using glm::quat;
 #include <GL/glew.h>
 
 /** Define any preprocessing directives here **/
+// Sound buffer indices
 #define STAGE1_BGM 0
 #define STAGE2_BGM 1
 #define MON_DEATH1 2
@@ -71,9 +72,13 @@ using glm::quat;
 #define CAT_LOW_HEALTH 7
 #define GAME_START 8
 
-#define GAME_TIME_LIMIT 120.0
-#define HP_LIMIT 5
+// Limits
+#define GAME_TIME_LIMIT 60.0
+#define HP_LIMIT 10
 #define LOW_HEALTH_LIMIT 4
+
+#define SERVER 1
+#define CLIENT 2
 
 /** Define our file inclusions here **/
 #include <chrono>
@@ -634,6 +639,7 @@ public:
 
 	/* State indicators */
 	unsigned int stage_type = 1;							// Stage to load (NOT ENOUGH TIME TO IMPLEMENT)
+	unsigned int server_or_client = 1;						//
 	int HP = HP_LIMIT;										// HP of the cat
 	bool game_win = false;									// Game win state
 	bool game_lose = false;									// Game lose state
@@ -642,8 +648,8 @@ public:
 	std::chrono::system_clock::time_point start_time;		// Keep track of time at each starting call
 
 	/* Position/Transformation indicators */
-	mat4 rHandTransform;									// Right hand transformation (translation * rotation)
-	mat4 headTransform;										// Head transformation matrix (translation * rotation)
+	mat4 rHandTransform1, rHandTransform2;					// Right hand transformation (translation * rotation)
+	mat4 headTransform1, headTransform2;					// Head transformation matrix (translation * rotation)
 	
 	/* Path indices */
 	unsigned int path_ind1 = 0;
@@ -768,12 +774,12 @@ public:
 		// Updating hand transformation
 		mat4 translate_hand = glm::translate(ovr::toGlm(trackState.HandPoses[ovrHand_Right].ThePose.Position));						// Get hand position
 		mat4 controllerRotationMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HandPoses[ovrHand_Right].ThePose.Orientation)));	// Get hand orientation
-		rHandTransform = translate_hand * controllerRotationMat;
+		rHandTransform1 = translate_hand * controllerRotationMat;
 
 		// Updating head transformation
 		mat4 headPosMat = glm::translate(ovr::toGlm(trackState.HeadPose.ThePose.Position));				// Get head position
 		mat4 headRotMat = glm::toMat4(ovr::toGlm(ovrQuatf(trackState.HeadPose.ThePose.Orientation)));	// Get head orientation
-		headTransform = headPosMat * headRotMat;
+		headTransform1 = headPosMat * headRotMat;
 	}
 	
 	void handleGameState(bool wonGame) {
@@ -791,9 +797,6 @@ public:
 			sounds->play(GAME_OVER);
 			cout << "YOU LOSE!" << endl;
 		}
-		// Print player scores here
-		cout << "PLAYER 1 SCORE: " << endl;
-		cout << "PLAYER 2 SCORE: " << endl;
 
 		// Reset states
 		start_game = false;
@@ -807,7 +810,7 @@ public:
 
 	void handleMainGameLogic() {
 		// Update sword bounding box
-		player_1->updateBoundingBox(rHandTransform);
+		player_1->updateBoundingBox(rHandTransform1);
 
 		// Go through each path (1 monster is on each path at a time)
 		for (unsigned int i = 0; i < path_container.size(); i++) {
@@ -857,18 +860,20 @@ protected:
 		// Initialize paths here
 		initialize_enemy_paths();
 
-		// Pick user stage here (HAD TO CUT OUT)
-		/*
+		/* Pick server or client here */
 		do {
-			cout << "PICK A STAGE: 1 OR 2..." << endl;
-			cin >> stage_type;
-			if (stage_type != 1 && stage_type != 2) {
-				cout << "Invalid stage! Try again!" << endl;
+			cout << "PICK A TYPE: SERVER = 1 | CLIENT = 2..." << endl;
+			cin >> server_or_client;
+			if (server_or_client != 1 && server_or_client != 2) {
+				cout << "Invalid option! Try again!" << endl;
 			}
-		} while (stage_type != 1 && stage_type != 2);
-		*/
+		} while (server_or_client != 1 && server_or_client != 2);
+		
+		cout << "Waiting on other player..." << endl;
+		// Stall until both server and client players are ready TODO
+
 		glEnable(GL_CULL_FACE);			// Enable backface culling
-		cout << "Please wait 3 seconds..." << endl;
+		cout << "Please wait 5 seconds..." << endl;
 		// Start countdown timer by getting current time
 		start_time = std::chrono::system_clock::now();
 	}
@@ -902,7 +907,7 @@ protected:
 		std::chrono::duration<double> elapsed_seconds = current_time - start_time;
 		// Do not go through main game logic until 3 seconds after start
 		if (!start_game) {
-			if (elapsed_seconds.count() > 3.0) {
+			if (elapsed_seconds.count() > 5.0) {
 				start_game = true;
 				cout << "GAME START!" << endl;
 				// Play sound
@@ -942,30 +947,35 @@ protected:
 
 		// Model Rendering
 		glFrontFace(GL_CCW);	// Treat clockwise orientation as back face (default)
+		// Cat rendering
 		obj_shader->use();
 		treasure_unit->draw(*obj_shader, projection, glm::inverse(headPose));
+		// Player rendering
 		player_shader->use();
-		player_1->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform, headTransform);
+		player_1->drawPlayer(*player_shader, projection, glm::inverse(headPose), rHandTransform1, headTransform1);
+		player_2->drawPlayer(*player_shader, projection, glm::inverse(headPose), mat4(1.0f), mat4(1.0f));
 
 		// Render enemies when game properly starts
 		if (start_game) {
 			/**/
+			// Enemy rendering
 			enemy_shader->use();
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]) * glm::rotate(glm::pi<float>(), vec3(0, 1, 0)));
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve4->getVertices()[path_ind4]) * glm::rotate(-glm::pi<float>() / 2, vec3(0, 1, 0)));
 
-			/* DEAL WITH DEBUG CODE HERE
+			/* DEAL WITH DEBUG CODE HERE */
+			// Path rendering
 			curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve3->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve4->draw(enemy_shader->ID, projection, glm::inverse(headPose));
-			*/
 			
+			// Bounding box rendering
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			bound_shader->use();
-			player_1->drawBoundingBox(*bound_shader, projection, glm::inverse(headPose), rHandTransform);
+			player_1->drawBoundingBox(*bound_shader, projection, glm::inverse(headPose), rHandTransform1);
 			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve1->getVertices()[path_ind1]));
 			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve2->getVertices()[path_ind2]) * glm::rotate(glm::pi<float>(), vec3(0, 1, 0)));
 			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));

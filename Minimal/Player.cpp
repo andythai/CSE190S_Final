@@ -33,8 +33,7 @@ void Player::initialize() {
 	sword_scale_factor = 1.4f;
 	models[SWORD]->rotate(45.0f, vec3(0, 1.0f, 0));
 	models[SWORD]->rotate(20.0f, vec3(1.0f, 0, 0));
-	models[SWORD]->translate(vec3(0.09f, 0.06f, -0.13f));	// Coordinate system of sword has been rotated slightly. This is a hacky fix but requires 
-															// less code than reorganizing order of transformations (As far as I know...)
+	models[SWORD]->translate(vec3(0.09f, 0.06f, -0.13f));	// Coordinate system of sword has been rotated slightly. This is a hacky fix. I do not know how to fix, yet
 
 	models[HEAD]->rotate(90.0f, vec3(0, 1.0f, 0));
 	models[HEAD]->translate(vec3(0, 0, 0.15f));
@@ -48,8 +47,7 @@ void Player::initialize() {
 							glm::rotate(glm::mat4(1.0f), 33.0f / 180.0f * glm::pi<float>(), vec3(1.0f, 0, 0)) 
 							* glm::rotate(glm::mat4(1.0f), 90.0f / 180.0f * glm::pi<float>(), vec3(0, 1.0f, 0));
 	
-	//attack_box = new Bound(0.05f, 0.05f, 0.05f);
-	//attack_box->toWorld = glm::translate(mat4(1.0f), vec3(0.0f, 0.2f, -0.3f)) * glm::rotate(glm::mat4(1.0f), 120.0f / 180.0f * glm::pi<float>(), vec3(1.0f, 0, 0));
+
 
 }
 
