@@ -38,8 +38,18 @@ void ClientGame::sendActionPackets()
     NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
 }
 
-void ClientGame::sendPackets(unsigned int packet_type) {
+void ClientGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform) {
+	// Initialize buffer
+	const unsigned int packet_size = sizeof(Packet);
+	char packet_data[packet_size];
 
+	// Fill data to send with player 2 data
+	Packet packet;
+	packet.packet_type = HEAD_HAND_TRANSFORMS;
+
+	packet.serialize(packet_data);
+
+	NetworkServices::sendMessage(network->ConnectSocket, packet_data, packet_size);
 }
 
 void ClientGame::update()
@@ -68,6 +78,20 @@ void ClientGame::update()
                 sendActionPackets();
 
                 break;
+
+			case HEAD_HAND_TRANSFORMS:
+				printf("client received HEAD_HAND_TRANSFORMS! This is incorrect!\n");
+				break;
+
+			case TRANSFORMS_AND_INDICES:
+				printf("client received transforms and path index data from server\n");
+				// Fill data
+				receivedHandTransform = packet.hand_transform;
+				receivedHeadTransform = packet.head_transform;
+				for (unsigned int i = 0; i < 4; i++) {
+					receivedPathInds[i] = packet.indices[i];
+				}
+				break;
 
             default:
 

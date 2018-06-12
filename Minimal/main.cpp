@@ -860,7 +860,13 @@ protected:
 		// Initialize paths here
 		initialize_enemy_paths();
 
-		/* Pick server or client here */
+		/*
+		cout << "Size of mat4 " << sizeof(mat4) << endl;
+		cout << "Size of char " << sizeof(char) << endl;
+		cout << "Size of unsigned int " << sizeof(unsigned int) << endl;
+		*/
+
+		/* Pick server or client here 
 		do {
 			cout << "PICK A TYPE: SERVER = 1 | CLIENT = 2..." << endl;
 			cin >> server_or_client;
@@ -871,6 +877,7 @@ protected:
 		
 		cout << "Waiting on other player..." << endl;
 		// Stall until both server and client players are ready TODO
+		*/
 
 		glEnable(GL_CULL_FACE);			// Enable backface culling
 		cout << "Please wait 5 seconds..." << endl;

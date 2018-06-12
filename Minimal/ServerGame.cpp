@@ -71,6 +71,17 @@ void ServerGame::receiveFromClients()
 
                     break;
 
+				case HEAD_HAND_TRANSFORMS:
+					printf("server received client's matrix transforms\n");
+					// Populate transform matrices
+					receivedHandTransform = packet.hand_transform;
+					receivedHeadTransform = packet.head_transform;
+					break;
+
+				case TRANSFORMS_AND_INDICES:
+					printf("Server is not supposed to receive index data!\n");
+					break;
+
                 default:
 
                     printf("error in packet types\n");
@@ -94,4 +105,23 @@ void ServerGame::sendActionPackets()
     packet.serialize(packet_data);
 
     network->sendToAll(packet_data,packet_size);
+}
+
+void ServerGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds) {
+	// Get packet size
+	const unsigned int packet_size = sizeof(Packet);
+	char packet_data[packet_size];
+	
+	// Send head and hand packets to clients
+	Packet packet;
+	packet.packet_type = TRANSFORMS_AND_INDICES;
+	packet.hand_transform = hand_transform;
+	packet.head_transform = head_transform;
+	for (unsigned int i = 0; i < 4; i++) {
+		packet.indices[i] = path_inds[i];
+	}
+
+	packet.serialize(packet_data);
+
+	network->sendToAll(packet_data, packet_size);
 }

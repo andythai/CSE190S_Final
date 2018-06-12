@@ -4,6 +4,7 @@
 #include "ClientNetwork.h"
 #include "NetworkData.h"
 
+
 class ClientGame
 {
 public:
@@ -12,11 +13,17 @@ public:
 
 	ClientNetwork* network;
 
+	/* Data the ClientGame receives from the server */
+	glm::mat4 receivedHandTransform;
+	glm::mat4 receivedHeadTransform;
+	unsigned int receivedPathInds[4];
+
 	void sendActionPackets();
-	/* Send packet of data to server
-	 * packet_type - type of packet to send 
+	/* Send packet containing head and hand transformation data to server
+	 * hand_transform - hand rotation and translation
+	 * head_transform - head rotation and translation
 	 */
-	void sendPackets(unsigned int packet_type);
+	void sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform);
 
     char network_data[MAX_PACKET_SIZE];
 
