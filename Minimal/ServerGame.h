@@ -22,15 +22,12 @@ public:
 
 	void sendActionPackets();
 
-	void close_server();
-
 	/* Send player 2 and enemies' location data to clients
 	 * hand_transform - hand transformation matrix
 	 * head_transform - head transformation matrix
 	 * path_inds - contains all 4 path indices of each enemy
-	 * states - game_win, game_lose, play_monster_noise, play_almost_dead
 	 */
-	void sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds, std::vector<bool> states);
+	void sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds);
 
 private:
 

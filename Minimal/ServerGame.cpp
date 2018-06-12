@@ -76,7 +76,7 @@ void ServerGame::receiveFromClients()
                     break;
 
 				case HEAD_HAND_TRANSFORMS:
-					printf("server received client's matrix transforms\n");
+					//printf("server received client's matrix transforms\n");
 					// Populate transform matrices
 					receivedHandTransform = packet.hand_transform;
 					receivedHeadTransform = packet.head_transform;
@@ -111,7 +111,7 @@ void ServerGame::sendActionPackets()
     network->sendToAll(packet_data,packet_size);
 }
 
-void ServerGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds, std::vector<bool> states) {
+void ServerGame::sendPackets(glm::mat4 hand_transform, glm::mat4 head_transform, std::vector<unsigned int> path_inds) {
 	// Get packet size
 	const unsigned int packet_size = sizeof(Packet);
 	char packet_data[packet_size];

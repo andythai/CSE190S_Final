@@ -799,13 +799,8 @@ public:
 			for (unsigned int i = 0; i < 4; i++) {
 				path_inds.push_back(*(path_ind_container[i]));
 			}
-			vector<bool> states;
-			states.push_back(game_win);
-			states.push_back(game_lose);
-			states.push_back(play_monster_noise);
-			states.push_back(cat_hit);
 			// Send player1 location and enemy location to player2
-			server->sendPackets(rHandTransform1, headTransform1, path_inds, states);
+			server->sendPackets(rHandTransform1, headTransform1, path_inds);
 		}
 		// Client version
 		else if (server_or_client == CLIENT && client->player1Found) {
@@ -966,7 +961,7 @@ protected:
 			server = new ServerGame();
 
 			// create thread with arbitrary argument for the run function. Listen for client!
-			_beginthread(serverLoop, 0, (void*)12);
+			//_beginthread(serverLoop, 0, (void*)12);
 		}
 		// initialize the client if game is client version
 		else {
@@ -991,6 +986,12 @@ protected:
 
 	/** Deal with idle_callbacks here **/
 	void update() {
+		if (server_or_client == SERVER) {
+			server->update();
+		}
+		if (server_or_client == CLIENT) {
+			client->update();
+		}
 		// Send data to server/client
 		sendDataOverNetwork();
 		// Update head and hand transformation matrices
@@ -1095,7 +1096,7 @@ protected:
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));
 			test_enemy->draw(*enemy_shader, projection, glm::inverse(headPose), glm::translate(curve4->getVertices()[path_ind4]) * glm::rotate(-glm::pi<float>() / 2, vec3(0, 1, 0)));
 
-			/* DEAL WITH DEBUG CODE HERE */
+			/* DEAL WITH DEBUG CODE HERE 
 			// Path rendering
 			curve1->draw(enemy_shader->ID, projection, glm::inverse(headPose));
 			curve2->draw(enemy_shader->ID, projection, glm::inverse(headPose));
@@ -1111,7 +1112,7 @@ protected:
 			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve3->getVertices()[path_ind3]) * glm::rotate(glm::pi<float>() / 2, vec3(0, 1, 0)));
 			test_enemy->drawHitBox(*bound_shader, projection, glm::inverse(headPose), glm::translate(curve4->getVertices()[path_ind4]) * glm::rotate(-glm::pi<float>() / 2, vec3(0, 1, 0)));
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			
+			*/
 		}
 	}
 };

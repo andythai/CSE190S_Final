@@ -87,7 +87,7 @@ void ClientGame::update()
 				break;
 
 			case TRANSFORMS_AND_INDICES:
-				printf("client received transforms and path index data from server\n");
+				//printf("client received transforms and path index data from server\n");
 				// Fill data
 				receivedHandTransform = packet.hand_transform;
 				receivedHeadTransform = packet.head_transform;
